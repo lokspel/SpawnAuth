@@ -27,6 +27,11 @@ public class GameHelper {
     }
 
     public void teleport(Player player, Location location) {
+        if (location == null || location.getWorld() == null) {
+            Bukkit.getLogger().warning("[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
+            return;
+        }
+
         player.teleport(location);
 
         if (location.getWorld() == Bukkit.getWorld("world_nether") && player.getLocation().getY() >= 127) {

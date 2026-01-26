@@ -34,7 +34,7 @@ public class GameHelper {
 
         player.teleport(location);
 
-        if (location.getWorld() == Bukkit.getWorld("world_nether") && player.getLocation().getY() >= 127) {
+        if (location.getWorld().getEnvironment() == World.Environment.NETHER && player.getLocation().getY() >= 127) {
             double y = player.getLocation().getY() - saveHelper.getLocation(player.getName()).getY();
             player.teleport(new Location(location.getWorld(), location.getX(), player.getLocation().getY() - y, location.getZ()));
         }

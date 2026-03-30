@@ -1,11 +1,11 @@
-package me.miko.spawnauth.events;
+package me.lokspel.spawnauth.events;
 
 import fr.xephi.authme.events.UnregisterByAdminEvent;
 import fr.xephi.authme.events.UnregisterByPlayerEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import me.miko.spawnauth.helpers.SaveHelper;
+import me.lokspel.spawnauth.helpers.SaveHelper;
 
 public class OnPlayerUnregisterEvent implements Listener {
     private final SaveHelper saveHelper;

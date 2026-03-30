@@ -1,6 +1,6 @@
-package me.miko.spawnauth.events;
+package me.lokspel.spawnauth.events;
 
-import me.miko.spawnauth.helpers.GameHelper;
+import me.lokspel.spawnauth.helpers.GameHelper;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

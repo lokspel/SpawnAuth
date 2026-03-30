@@ -1,12 +1,12 @@
-package me.miko.spawnauth;
+package me.lokspel.spawnauth;
 
-import me.miko.spawnauth.events.*;
+import me.lokspel.spawnauth.events.*;
 import fr.xephi.authme.api.v3.AuthMeApi;
-import me.miko.spawnauth.helpers.LogHelper;
+import me.lokspel.spawnauth.helpers.LogHelper;
 import org.bukkit.plugin.java.JavaPlugin;
-import me.miko.spawnauth.helpers.GameHelper;
-import me.miko.spawnauth.helpers.SaveHelper;
-import me.miko.spawnauth.world.LimboWorldManager;
+import me.lokspel.spawnauth.helpers.GameHelper;
+import me.lokspel.spawnauth.helpers.SaveHelper;
+import me.lokspel.spawnauth.world.LimboWorldManager;
 
 public final class SpawnAuth extends JavaPlugin {
     private SaveHelper saveHelper;

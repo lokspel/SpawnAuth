@@ -1,4 +1,4 @@
-package me.miko.spawnauth.helpers;
+package me.lokspel.spawnauth.helpers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

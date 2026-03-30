@@ -1,11 +1,11 @@
-package me.miko.spawnauth.world;
+package me.lokspel.spawnauth.world;
 
-import me.miko.spawnauth.SpawnAuth;
-import me.miko.spawnauth.helpers.GameHelper;
+import me.lokspel.spawnauth.SpawnAuth;
+import me.lokspel.spawnauth.helpers.GameHelper;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
-import me.miko.spawnauth.helpers.LogHelper;
+import me.lokspel.spawnauth.helpers.LogHelper;
 
 public class LimboWorldManager {
     private final SpawnAuth plugin;

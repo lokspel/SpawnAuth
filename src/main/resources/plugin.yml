@@ -1,6 +1,6 @@
 name: SpawnAuth
 version: '${project.version}'
-main: me.miko.spawnauth.SpawnAuth
+main: me.lokspel.spawnauth.SpawnAuth
 api-version: '1.21'
-authors: [ MIKO ]
+authors: [ lokspel ]
 softdepend: [ AuthMe ]

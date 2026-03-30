@@ -1,10 +1,10 @@
-package me.miko.spawnauth.events;
+package me.lokspel.spawnauth.events;
 
 import fr.xephi.authme.events.LogoutEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import me.miko.spawnauth.helpers.SaveHelper;
+import me.lokspel.spawnauth.helpers.SaveHelper;
 
 public class OnPlayerLogoutEvent implements Listener {
     private final SaveHelper saveHelper;

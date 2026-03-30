@@ -1,4 +1,4 @@
-package me.miko.spawnauth.helpers;
+package me.lokspel.spawnauth.helpers;
 
 import fr.xephi.authme.api.v3.AuthMeApi;
 import org.bukkit.Bukkit;

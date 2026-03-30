@@ -1,4 +1,4 @@
-package me.miko.spawnauth.world;
+package me.lokspel.spawnauth.world;
 
 import org.bukkit.GameRules;
 import org.bukkit.World;

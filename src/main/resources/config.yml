@@ -1,0 +1,8 @@
+limbo:
+  name: limbo
+  spawn:
+    x: 7
+    y: 70
+    z: 7
+  platform:
+    radius: 1

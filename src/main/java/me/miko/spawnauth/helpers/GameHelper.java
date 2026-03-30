@@ -1,43 +1,62 @@
 package me.miko.spawnauth.helpers;
 
 import fr.xephi.authme.api.v3.AuthMeApi;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.util.Random;
-
 public class GameHelper {
     public AuthMeApi authMeApi;
     public SaveHelper saveHelper;
+    private final String authWorldName;
 
-    public GameHelper(AuthMeApi authMeApi) {
+    public GameHelper(AuthMeApi authMeApi, String authWorldName) {
         this.authMeApi = authMeApi;
+        this.authWorldName = authWorldName;
     }
 
     public Location getSpawnLocation(World world) {
-        int spawnRadius = Integer.parseInt(world.getGameRuleValue("spawnRadius")) <= 10 ? 200 : Integer.parseInt(world.getGameRuleValue("spawnRadius"));
+        return world != null ? world.getSpawnLocation().toCenterLocation() : null;
+    }
 
-        int x = new Random().nextInt(spawnRadius * 2) - spawnRadius;
-        int z = new Random().nextInt(spawnRadius * 2) - spawnRadius;
-        double y = world.getHighestBlockYAt(x, z);
+    public World getAuthWorld() {
+        return org.bukkit.Bukkit.getWorld(authWorldName);
+    }
 
-        return new Location(world, x, y, z);
+    public Location getAuthSpawnLocation() {
+        return getSpawnLocation(getAuthWorld());
+    }
+
+    public boolean isInAuthWorld(Location location) {
+        World authWorld = getAuthWorld();
+        return location != null && location.getWorld() != null && authWorld != null && location.getWorld().equals(authWorld);
+    }
+
+    public boolean isAtAuthSpawn(Location location) {
+        Location authSpawn = getAuthSpawnLocation();
+        if (location == null || authSpawn == null || location.getWorld() == null || authSpawn.getWorld() == null) {
+            return false;
+        }
+
+        if (!location.getWorld().equals(authSpawn.getWorld())) {
+            return false;
+        }
+
+        return location.distanceSquared(authSpawn) <= 4.0;
     }
 
     public void teleport(Player player, Location location) {
+        if (player == null) {
+            LogHelper.LOGGER.warning("[SpawnAuth] Tried to teleport a null player.");
+            return;
+        }
+
         if (location == null || location.getWorld() == null) {
-            Bukkit.getLogger().warning("[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
+            LogHelper.LOGGER.warning("[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
             return;
         }
 
         player.teleport(location);
-
-        if (location.getWorld() == Bukkit.getWorld("world_nether") && player.getLocation().getY() >= 127) {
-            double y = player.getLocation().getY() - saveHelper.getLocation(player.getName()).getY();
-            player.teleport(new Location(location.getWorld(), location.getX(), player.getLocation().getY() - y, location.getZ()));
-        }
     }
 
     public void setSaveHelper(SaveHelper saveHelper) {

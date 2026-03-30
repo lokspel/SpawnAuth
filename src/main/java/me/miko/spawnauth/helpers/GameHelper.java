@@ -1,14 +1,16 @@
 package me.miko.spawnauth.helpers;
 
 import fr.xephi.authme.api.v3.AuthMeApi;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 public class GameHelper {
-    public AuthMeApi authMeApi;
-    public SaveHelper saveHelper;
+    private final AuthMeApi authMeApi;
     private final String authWorldName;
+    private World authWorld;
+    private Location authSpawnLocation;
 
     public GameHelper(AuthMeApi authMeApi, String authWorldName) {
         this.authMeApi = authMeApi;
@@ -20,11 +22,17 @@ public class GameHelper {
     }
 
     public World getAuthWorld() {
-        return org.bukkit.Bukkit.getWorld(authWorldName);
+        if (authWorld == null) {
+            authWorld = Bukkit.getWorld(authWorldName);
+        }
+        return authWorld;
     }
 
     public Location getAuthSpawnLocation() {
-        return getSpawnLocation(getAuthWorld());
+        if (authSpawnLocation == null) {
+            authSpawnLocation = getSpawnLocation(getAuthWorld());
+        }
+        return authSpawnLocation != null ? authSpawnLocation.clone() : null;
     }
 
     public boolean isInAuthWorld(Location location) {
@@ -59,7 +67,12 @@ public class GameHelper {
         player.teleport(location);
     }
 
-    public void setSaveHelper(SaveHelper saveHelper) {
-        this.saveHelper = saveHelper;
+    public boolean isAuthenticated(Player player) {
+        return authMeApi != null && authMeApi.isAuthenticated(player);
+    }
+
+    public void setAuthWorld(World authWorld) {
+        this.authWorld = authWorld;
+        this.authSpawnLocation = getSpawnLocation(authWorld);
     }
 }

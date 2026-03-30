@@ -38,11 +38,13 @@ public class OnPlayerJoinEvent implements Listener {
             return;
         }
 
-        var pendingLocation = saveHelper.getLocation(player.getName());
+        String playerName = player.getName();
+        var pendingLocation = saveHelper.getLocation(playerName);
 
-        if (gameHelper.authMeApi.isAuthenticated(player)) {
+        if (gameHelper.isAuthenticated(player)) {
             if (pendingLocation != null) {
-                gameHelper.teleport(player, saveHelper.takeLocation(player.getName()));
+                saveHelper.removeLocation(playerName);
+                gameHelper.teleport(player, pendingLocation);
             }
             return;
         }

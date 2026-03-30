@@ -26,7 +26,7 @@ public class OnPlayerRespawnEvent implements Listener {
             saveHelper.saveLocation(player.getName(), respawnLocation);
         }
 
-        if (!gameHelper.authMeApi.isAuthenticated(player)) {
+        if (!gameHelper.isAuthenticated(player)) {
             Location authSpawn = gameHelper.getAuthSpawnLocation();
             if (authSpawn != null) {
                 event.setRespawnLocation(authSpawn);

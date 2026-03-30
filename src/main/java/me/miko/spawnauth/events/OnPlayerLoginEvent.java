@@ -32,7 +32,7 @@ public class OnPlayerLoginEvent implements Listener {
         }
 
         Bukkit.getScheduler().runTask(plugin, () -> {
-            if (!player.isOnline() || !gameHelper.authMeApi.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
+            if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
                 return;
             }
 

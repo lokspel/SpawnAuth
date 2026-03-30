@@ -20,6 +20,8 @@ public class SaveHelper {
     private static final String SELECT_LOCATION_SQL = "SELECT * FROM PlayerLocations WHERE name = ?";
     //noinspection SqlNoDataSourceInspection
     private static final String SELECT_ALL_LOCATIONS_SQL = "SELECT * FROM PlayerLocations";
+    //noinspection SqlNoDataSourceInspection
+    private static final String SELECT_AND_DELETE_LOCATION_SQL = "DELETE FROM PlayerLocations WHERE name = ? RETURNING x, y, z, world";
 
     private final String dataBaseURL;
 
@@ -88,13 +90,19 @@ public class SaveHelper {
     }
 
     public Location takeLocation(String name) {
-        Location location = getLocation(name);
-
-        if (location != null) {
-            removeLocation(name);
+        try (Connection connection = getConnection()) {
+            try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_AND_DELETE_LOCATION_SQL)) {
+                preparedStatement.setString(1, name);
+                try (ResultSet result = preparedStatement.executeQuery()) {
+                    if (result.next()) {
+                        return readLocation(result);
+                    }
+                }
+            }
+        } catch (SQLException exception) {
+            LogHelper.LOGGER.warning("[SpawnAuth] Failed to take location for " + name + ": " + exception.getMessage());
         }
-
-        return location;
+        return null;
     }
 
     public void handleDisable(GameHelper gameHelper) {
@@ -106,7 +114,7 @@ public class SaveHelper {
                             Location location = readLocation(result);
                             Player player = Bukkit.getPlayer(result.getString("name"));
 
-                            if (player != null && player.isOnline()) {
+                            if (location != null && player != null && player.isOnline()) {
                                 gameHelper.teleport(player, location);
                                 removeLocation(player.getName());
                             }
@@ -132,11 +140,11 @@ public class SaveHelper {
     }
 
     private Location readLocation(ResultSet result) throws SQLException {
-        return new Location(
-                Bukkit.getWorld(result.getString("world")),
-                result.getDouble("x"),
-                result.getDouble("y"),
-                result.getDouble("z")
-        );
+        var world = Bukkit.getWorld(result.getString("world"));
+        if (world == null) {
+            return null;
+        }
+
+        return new Location(world, result.getDouble("x"), result.getDouble("y"), result.getDouble("z"));
     }
 }

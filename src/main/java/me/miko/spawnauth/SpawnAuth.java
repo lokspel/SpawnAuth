@@ -9,8 +9,8 @@ import me.miko.spawnauth.helpers.SaveHelper;
 import me.miko.spawnauth.world.LimboWorldManager;
 
 public final class SpawnAuth extends JavaPlugin {
-    public SaveHelper saveHelper;
-    public GameHelper gameHelper;
+    private SaveHelper saveHelper;
+    private GameHelper gameHelper;
     @Override
     public void onEnable() {
         // Setup dataFolder
@@ -22,13 +22,20 @@ public final class SpawnAuth extends JavaPlugin {
         saveDefaultConfig();
 
         // Create classes
+        AuthMeApi authMeApi = AuthMeApi.getInstance();
+        if (authMeApi == null) {
+            LogHelper.LOGGER.severe("[SpawnAuth] AuthMe API is unavailable. Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         saveHelper = new SaveHelper(getDataFolder());
-        gameHelper = new GameHelper(AuthMeApi.getInstance(), getConfig().getString("limbo.name", "limbo"));
+        gameHelper = new GameHelper(authMeApi, getConfig().getString("limbo.name", "limbo"));
 
         // Setup data base
         saveHelper.setupDataBase();
-        gameHelper.setSaveHelper(saveHelper);
-        new LimboWorldManager(this).createLimboWorld();
+
+        new LimboWorldManager(this, gameHelper).createLimboWorld();
 
         // Register events
         getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this, gameHelper, saveHelper), this);

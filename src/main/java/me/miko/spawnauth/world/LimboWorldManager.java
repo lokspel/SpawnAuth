@@ -1,6 +1,7 @@
 package me.miko.spawnauth.world;
 
 import me.miko.spawnauth.SpawnAuth;
+import me.miko.spawnauth.helpers.GameHelper;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -8,9 +9,11 @@ import me.miko.spawnauth.helpers.LogHelper;
 
 public class LimboWorldManager {
     private final SpawnAuth plugin;
+    private final GameHelper gameHelper;
 
-    public LimboWorldManager(SpawnAuth plugin) {
+    public LimboWorldManager(SpawnAuth plugin, GameHelper gameHelper) {
         this.plugin = plugin;
+        this.gameHelper = gameHelper;
     }
 
     public World createLimboWorld() {
@@ -33,6 +36,7 @@ public class LimboWorldManager {
         }
 
         configureLimboWorld(world, spawnX, spawnZ);
+        gameHelper.setAuthWorld(world);
         return world;
     }
 

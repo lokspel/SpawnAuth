@@ -43,8 +43,10 @@ public class OnPlayerJoinEvent implements Listener {
 
         if (gameHelper.isAuthenticated(player)) {
             if (pendingLocation != null) {
+                if (gameHelper.isInAuthWorld(player.getLocation())) {
+                    gameHelper.teleport(player, pendingLocation);
+                }
                 saveHelper.removeLocation(playerName);
-                gameHelper.teleport(player, pendingLocation);
             }
             gameHelper.updateLimboCollision(player);
             gameHelper.updateLimboWeather(player);

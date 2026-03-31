@@ -20,13 +20,12 @@ public class OnPlayerRespawnEvent implements Listener {
     @EventHandler
     private void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        Location respawnLocation = event.getRespawnLocation();
-
-        if (respawnLocation != null) {
-            saveHelper.saveLocation(player.getName(), respawnLocation);
-        }
-
         if (!gameHelper.isAuthenticated(player)) {
+            Location respawnLocation = event.getRespawnLocation();
+            if (respawnLocation != null) {
+                saveHelper.saveLocation(player.getName(), respawnLocation);
+            }
+
             Location authSpawn = gameHelper.getAuthSpawnLocation();
             if (authSpawn != null) {
                 event.setRespawnLocation(authSpawn);

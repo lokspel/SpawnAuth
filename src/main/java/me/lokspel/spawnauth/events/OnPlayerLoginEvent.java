@@ -32,6 +32,7 @@ public class OnPlayerLoginEvent implements Listener {
         }
 
         gameHelper.updateLimboCollision(player);
+        gameHelper.updateLimboWeather(player);
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
@@ -44,6 +45,7 @@ public class OnPlayerLoginEvent implements Listener {
             }
 
             gameHelper.updateLimboCollision(player);
+            gameHelper.updateLimboWeather(player);
         });
     }
 }

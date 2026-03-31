@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.WeatherType;
 
 public class GameHelper {
     private final AuthMeApi authMeApi;
@@ -87,12 +88,37 @@ public class GameHelper {
         player.setCollidable(!isInAuthWorld(location));
     }
 
+    public void updateLimboWeather(Player player) {
+        updateLimboWeather(player, player != null ? player.getLocation() : null);
+    }
+
+    public void updateLimboWeather(Player player, Location location) {
+        if (player == null) {
+            return;
+        }
+
+        if (isInAuthWorld(location)) {
+            player.setPlayerWeather(WeatherType.CLEAR);
+            return;
+        }
+
+        player.resetPlayerWeather();
+    }
+
     public void resetCollision(Player player) {
         if (player == null) {
             return;
         }
 
         player.setCollidable(true);
+    }
+
+    public void resetWeather(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        player.resetPlayerWeather();
     }
 
     public void setAuthWorld(World authWorld) {

@@ -39,10 +39,9 @@ public final class SpawnAuth extends JavaPlugin {
 
         // Register events
         getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this, gameHelper, saveHelper), this);
-        getServer().getPluginManager().registerEvents(new OnLimboProtectionEvent(gameHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerRespawnEvent(gameHelper, saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerLoginEvent(this, gameHelper, saveHelper), this);
-        getServer().getPluginManager().registerEvents(new OnPlayerQuitEvent(gameHelper, saveHelper), this);
+        getServer().getPluginManager().registerEvents(new OnPlayerQuitEvent(gameHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerLogoutEvent(saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerUnregisterEvent(saveHelper), this);
     }

@@ -47,6 +47,7 @@ public class OnPlayerJoinEvent implements Listener {
                 gameHelper.teleport(player, pendingLocation);
             }
             gameHelper.updateLimboCollision(player);
+            gameHelper.updateLimboWeather(player);
             return;
         }
 
@@ -55,11 +56,13 @@ public class OnPlayerJoinEvent implements Listener {
                 gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
             }
             gameHelper.updateLimboCollision(player);
+            gameHelper.updateLimboWeather(player);
             return;
         }
 
         saveHelper.saveLocation(player.getName(), player.getLocation());
         gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
         gameHelper.updateLimboCollision(player);
+        gameHelper.updateLimboWeather(player);
     }
 }

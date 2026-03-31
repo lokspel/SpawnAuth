@@ -14,6 +14,8 @@ import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.event.weather.ThunderChangeEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
 
 public class OnLimboProtectionEvent implements Listener {
     private final GameHelper gameHelper;
@@ -88,6 +90,20 @@ public class OnLimboProtectionEvent implements Listener {
     @EventHandler
     private void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player player && gameHelper.isInAuthWorld(player.getLocation())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onWeatherChange(WeatherChangeEvent event) {
+        if (event.getWorld().equals(gameHelper.getAuthWorld()) && event.toWeatherState()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    private void onThunderChange(ThunderChangeEvent event) {
+        if (event.getWorld().equals(gameHelper.getAuthWorld()) && event.toThunderState()) {
             event.setCancelled(true);
         }
     }

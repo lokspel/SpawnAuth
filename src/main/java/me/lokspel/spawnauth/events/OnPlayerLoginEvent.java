@@ -31,6 +31,8 @@ public class OnPlayerLoginEvent implements Listener {
             gameHelper.teleport(player, location);
         }
 
+        gameHelper.updateLimboCollision(player);
+
         Bukkit.getScheduler().runTask(plugin, () -> {
             if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
                 return;
@@ -40,6 +42,8 @@ public class OnPlayerLoginEvent implements Listener {
             if (fallbackLocation != null) {
                 gameHelper.teleport(player, fallbackLocation);
             }
+
+            gameHelper.updateLimboCollision(player);
         });
     }
 }

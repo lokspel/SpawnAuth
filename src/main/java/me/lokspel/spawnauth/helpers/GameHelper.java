@@ -60,7 +60,7 @@ public class GameHelper {
         }
 
         if (location == null || location.getWorld() == null) {
-            LogHelper.LOGGER.warning("[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
+            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
             return;
         }
 
@@ -69,6 +69,30 @@ public class GameHelper {
 
     public boolean isAuthenticated(Player player) {
         return authMeApi != null && authMeApi.isAuthenticated(player);
+    }
+
+    public void updateLimboCollision(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        updateLimboCollision(player, player.getLocation());
+    }
+
+    public void updateLimboCollision(Player player, Location location) {
+        if (player == null) {
+            return;
+        }
+
+        player.setCollidable(!isInAuthWorld(location));
+    }
+
+    public void resetCollision(Player player) {
+        if (player == null) {
+            return;
+        }
+
+        player.setCollidable(true);
     }
 
     public void setAuthWorld(World authWorld) {

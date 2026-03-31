@@ -19,6 +19,7 @@ public class OnPlayerQuitEvent implements Listener {
     @EventHandler
     private void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        gameHelper.resetCollision(player);
 
         if (player.isInsideVehicle()) {
             player.leaveVehicle();

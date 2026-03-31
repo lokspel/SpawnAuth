@@ -46,6 +46,7 @@ public class OnPlayerJoinEvent implements Listener {
                 saveHelper.removeLocation(playerName);
                 gameHelper.teleport(player, pendingLocation);
             }
+            gameHelper.updateLimboCollision(player);
             return;
         }
 
@@ -53,10 +54,12 @@ public class OnPlayerJoinEvent implements Listener {
             if (!gameHelper.isInAuthWorld(player.getLocation())) {
                 gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
             }
+            gameHelper.updateLimboCollision(player);
             return;
         }
 
         saveHelper.saveLocation(player.getName(), player.getLocation());
         gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
+        gameHelper.updateLimboCollision(player);
     }
 }

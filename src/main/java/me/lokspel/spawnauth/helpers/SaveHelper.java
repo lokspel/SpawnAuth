@@ -39,7 +39,7 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to setup database: " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to setup database: " + exception.getMessage());
         }
     }
 
@@ -58,7 +58,7 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to save location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to save location for " + name + ": " + exception.getMessage());
         }
     }
 
@@ -69,7 +69,7 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to remove location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to remove location for " + name + ": " + exception.getMessage());
         }
     }
 
@@ -84,7 +84,7 @@ public class SaveHelper {
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to load location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to load location for " + name + ": " + exception.getMessage());
         }
         return null;
     }
@@ -100,7 +100,7 @@ public class SaveHelper {
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to take location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to take location for " + name + ": " + exception.getMessage());
         }
         return null;
     }
@@ -119,13 +119,13 @@ public class SaveHelper {
                                 removeLocation(player.getName());
                             }
                         } catch (Exception exception) {
-                            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to restore a player location on disable: " + exception.getMessage());
+                    LogHelper.LOGGER.warning(() -> "Failed to restore a player location on disable: " + exception.getMessage());
                         }
                     }
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Failed to handle disable: " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to handle disable: " + exception.getMessage());
         }
     }
 

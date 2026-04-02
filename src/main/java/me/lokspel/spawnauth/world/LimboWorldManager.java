@@ -30,7 +30,7 @@ public class LimboWorldManager {
 
         World world = plugin.getServer().createWorld(worldCreator);
         if (world == null) {
-            LogHelper.LOGGER.severe("[SpawnAuth] Failed to create limbo world.");
+            LogHelper.LOGGER.severe("Failed to create limbo world.");
             plugin.getServer().shutdown();
             return null;
         }

@@ -1,6 +1,5 @@
 package me.lokspel.spawnauth.helpers;
 
-import fr.xephi.authme.api.v3.AuthMeApi;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -8,13 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.WeatherType;
 
 public class GameHelper {
-    private final AuthMeApi authMeApi;
     private final String authWorldName;
     private World authWorld;
     private Location authSpawnLocation;
 
-    public GameHelper(AuthMeApi authMeApi, String authWorldName) {
-        this.authMeApi = authMeApi;
+    public GameHelper(String authWorldName) {
         this.authWorldName = authWorldName;
     }
 
@@ -56,12 +53,12 @@ public class GameHelper {
 
     public void teleport(Player player, Location location) {
         if (player == null) {
-            LogHelper.LOGGER.warning("[SpawnAuth] Tried to teleport a null player.");
+            LogHelper.LOGGER.warning("Tried to teleport a null player.");
             return;
         }
 
         if (location == null || location.getWorld() == null) {
-            LogHelper.LOGGER.warning(() -> "[SpawnAuth] Tried to teleport " + player.getName() + " but location was null.");
+            LogHelper.LOGGER.warning(() -> "Tried to teleport " + player.getName() + " but location was null.");
             return;
         }
 
@@ -69,7 +66,7 @@ public class GameHelper {
     }
 
     public boolean isAuthenticated(Player player) {
-        return authMeApi != null && authMeApi.isAuthenticated(player);
+        return AuthHelper.isAuthenticated(player);
     }
 
     public void updateLimboCollision(Player player) {

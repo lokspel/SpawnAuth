@@ -2,7 +2,7 @@ package me.lokspel.spawnauth.events;
 
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import org.bukkit.Bukkit;
+import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,7 +26,7 @@ public class OnPlayerJoinEvent implements Listener {
 
         if (player.isDead()) {
             player.spigot().respawn();
-            Bukkit.getScheduler().runTask(plugin, () -> handlePostJoin(player));
+            FoliaAPI.runTaskForEntity(player, () -> handlePostJoin(player));
             return;
         }
 

@@ -3,7 +3,7 @@ package me.lokspel.spawnauth.events.authme;
 import fr.xephi.authme.events.LoginEvent;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import org.bukkit.Bukkit;
+import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -34,7 +34,7 @@ public class AuthMeLoginListener implements Listener {
         gameHelper.updateLimboCollision(player);
         gameHelper.updateLimboWeather(player);
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        FoliaAPI.runTaskForEntity(player, () -> {
             if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
                 return;
             }

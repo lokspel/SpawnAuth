@@ -1,5 +1,6 @@
 package me.lokspel.spawnauth.helpers;
 
+import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -62,7 +63,7 @@ public class GameHelper {
             return;
         }
 
-        player.teleport(location);
+        FoliaAPI.teleportPlayer(player, location, true);
     }
 
     public boolean isAuthenticated(Player player) {

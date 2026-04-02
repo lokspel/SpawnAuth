@@ -4,7 +4,7 @@ import com.nickuc.login.api.event.bukkit.auth.LoginEvent;
 import com.nickuc.login.api.event.bukkit.auth.RegisterEvent;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import org.bukkit.Bukkit;
+import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,12 +24,12 @@ public class NLoginLoginListener implements Listener {
 
     @EventHandler
     private void onPlayerLogin(LoginEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> handleAuthenticatedPlayer(event.getPlayer()));
+        FoliaAPI.runTaskForEntity(event.getPlayer(), () -> handleAuthenticatedPlayer(event.getPlayer()));
     }
 
     @EventHandler
     private void onPlayerRegister(RegisterEvent event) {
-        Bukkit.getScheduler().runTask(plugin, () -> handleAuthenticatedPlayer(event.getPlayer()));
+        FoliaAPI.runTaskForEntity(event.getPlayer(), () -> handleAuthenticatedPlayer(event.getPlayer()));
     }
 
     private void handleAuthenticatedPlayer(Player player) {
@@ -43,7 +43,7 @@ public class NLoginLoginListener implements Listener {
         gameHelper.updateLimboCollision(player);
         gameHelper.updateLimboWeather(player);
 
-        Bukkit.getScheduler().runTask(plugin, () -> {
+        FoliaAPI.runTaskForEntity(player, () -> {
             if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
                 return;
             }

@@ -457,14 +457,18 @@ public class FoliaAPI {
                 if (complete != null) complete.run();
             });
             return CompletableFuture.completedFuture(true);
-        } else if (async) {
-            Method teleportMethod = cachedMethods.get("player.teleportAsync");
-            boolean invoked = invokeMethod(teleportMethod, e, location) != null;
-            if (complete != null) complete.run();
-            return CompletableFuture.completedFuture(invoked);
         } else {
-            e.teleport(location);
-            if (complete != null) complete.run();
+            Method teleportMethod = cachedMethods.get("player.teleportAsync");
+            FoliaAPI.runTaskForEntity(e, () -> {
+                Object result = invokeMethod(teleportMethod, e, location);
+                if (result instanceof CompletableFuture<?> future && complete != null) {
+                    future.whenComplete((ignored, throwable) -> complete.run());
+                    return;
+                }
+
+                if (complete != null) complete.run();
+            }, () -> {
+            }, 1L);
             return CompletableFuture.completedFuture(true);
         }
     }

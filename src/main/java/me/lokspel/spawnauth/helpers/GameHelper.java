@@ -9,11 +9,17 @@ import org.bukkit.WeatherType;
 
 public class GameHelper {
     private final String authWorldName;
+    private final double authSpawnX;
+    private final double authSpawnY;
+    private final double authSpawnZ;
     private World authWorld;
     private Location authSpawnLocation;
 
-    public GameHelper(String authWorldName) {
+    public GameHelper(String authWorldName, double authSpawnX, double authSpawnY, double authSpawnZ) {
         this.authWorldName = authWorldName;
+        this.authSpawnX = authSpawnX;
+        this.authSpawnY = authSpawnY;
+        this.authSpawnZ = authSpawnZ;
     }
 
     public Location getSpawnLocation(World world) {
@@ -29,7 +35,10 @@ public class GameHelper {
 
     public Location getAuthSpawnLocation() {
         if (authSpawnLocation == null) {
-            authSpawnLocation = getSpawnLocation(getAuthWorld());
+            World authWorld = getAuthWorld();
+            if (authWorld != null) {
+                authSpawnLocation = new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5);
+            }
         }
         return authSpawnLocation != null ? authSpawnLocation.clone() : null;
     }
@@ -121,6 +130,10 @@ public class GameHelper {
 
     public void setAuthWorld(World authWorld) {
         this.authWorld = authWorld;
-        this.authSpawnLocation = getSpawnLocation(authWorld);
+        this.authSpawnLocation = authWorld != null ? new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5) : null;
+    }
+
+    public void setAuthSpawnLocation(Location authSpawnLocation) {
+        this.authSpawnLocation = authSpawnLocation != null ? authSpawnLocation.clone() : null;
     }
 }

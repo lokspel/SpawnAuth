@@ -41,12 +41,19 @@ public final class SpawnAuth extends JavaPlugin {
         }
 
         saveHelper = new SaveHelper(getDataFolder());
-        gameHelper = new GameHelper(getConfig().getString("limbo.name", "limbo"));
+        gameHelper = new GameHelper(
+                getConfig().getString("limbo.name", "limbo"),
+                getConfig().getDouble("limbo.spawn.x", 7),
+                getConfig().getDouble("limbo.spawn.y", 70),
+                getConfig().getDouble("limbo.spawn.z", 7)
+        );
 
         // Setup data base
         saveHelper.setupDataBase();
 
-        new LimboWorldManager(this, gameHelper).createLimboWorld();
+        if (new LimboWorldManager(this, gameHelper).createLimboWorld() == null) {
+            return;
+        }
 
         // Register events
         getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this, gameHelper, saveHelper), this);

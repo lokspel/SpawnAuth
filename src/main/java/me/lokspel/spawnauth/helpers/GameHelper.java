@@ -63,7 +63,7 @@ public class GameHelper {
             return;
         }
 
-        FoliaAPI.teleportPlayer(player, location, true);
+        FoliaAPI.teleportPlayer(player, location, FoliaAPI.isFolia());
     }
 
     public boolean isAuthenticated(Player player) {

@@ -63,12 +63,13 @@ public class GameHelper {
 
     public void teleport(Player player, Location location) {
         if (player == null) {
-            LogHelper.LOGGER.warning("Tried to teleport a null player.");
+            LogHelper.LOGGER.warning("Teleport was skipped because the target player reference was null.");
             return;
         }
 
         if (location == null || location.getWorld() == null) {
-            LogHelper.LOGGER.warning(() -> "Tried to teleport " + player.getName() + " but location was null.");
+            LogHelper.LOGGER.warning(() -> "Teleport was skipped for player '" + player.getName()
+                    + "' because the destination location or world was null.");
             return;
         }
 

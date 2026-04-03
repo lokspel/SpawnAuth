@@ -186,9 +186,13 @@ public class FoliaAPI {
         } catch (Exception e) {
             final SpawnAuth plugin = SpawnAuth.getInstance();
             if (plugin != null) {
-                plugin.getLogger().log(Level.SEVERE, "FoliaAPI reflective invocation failed.", e);
+                plugin.getLogger().log(Level.SEVERE,
+                        "A reflective Folia scheduler call failed. This usually means the running server API does not match the expected Paper/Folia methods.",
+                        e);
             } else {
-                Bukkit.getLogger().log(Level.SEVERE, "[SpawnAuth] FoliaAPI reflective invocation failed.", e);
+                Bukkit.getLogger().log(Level.SEVERE,
+                        "[SpawnAuth] A reflective Folia scheduler call failed. This usually means the running server API does not match the expected Paper/Folia methods.",
+                        e);
             }
         }
         return null;

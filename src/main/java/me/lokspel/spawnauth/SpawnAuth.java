@@ -15,10 +15,13 @@ import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
 import me.lokspel.spawnauth.utils.FoliaAPI;
 import me.lokspel.spawnauth.world.LimboWorldManager;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class SpawnAuth extends JavaPlugin {
     private static SpawnAuth instance;
+    private final Map<String, Boolean> pluginEnabledCache = new ConcurrentHashMap<>();
     private SaveHelper saveHelper;
     private GameHelper gameHelper;
 
@@ -99,7 +102,9 @@ public final class SpawnAuth extends JavaPlugin {
     }
 
     private boolean isPluginEnabled(String pluginName) {
-        Plugin plugin = getServer().getPluginManager().getPlugin(pluginName);
-        return plugin != null && plugin.isEnabled();
+        return pluginEnabledCache.computeIfAbsent(pluginName, name -> {
+            Plugin plugin = getServer().getPluginManager().getPlugin(name);
+            return plugin != null && plugin.isEnabled();
+        });
     }
 }

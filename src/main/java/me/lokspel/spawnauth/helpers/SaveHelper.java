@@ -39,7 +39,8 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to setup database: " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to initialize the SQLite database used for saved player locations: "
+                    + exception.getMessage());
         }
     }
 
@@ -58,7 +59,8 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to save location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to save the stored location for player '" + name + "': "
+                    + exception.getMessage());
         }
     }
 
@@ -69,7 +71,8 @@ public class SaveHelper {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to remove location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to delete the stored location for player '" + name + "': "
+                    + exception.getMessage());
         }
     }
 
@@ -84,7 +87,8 @@ public class SaveHelper {
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to load location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to load the stored location for player '" + name + "': "
+                    + exception.getMessage());
         }
         return null;
     }
@@ -100,7 +104,8 @@ public class SaveHelper {
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to take location for " + name + ": " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to load and remove the stored location for player '" + name + "': "
+                    + exception.getMessage());
         }
         return null;
     }
@@ -119,13 +124,15 @@ public class SaveHelper {
                                 removeLocation(player.getName());
                             }
                         } catch (Exception exception) {
-                    LogHelper.LOGGER.warning(() -> "Failed to restore a player location on disable: " + exception.getMessage());
+                            LogHelper.LOGGER.warning(() -> "Failed to restore a player's saved location while the plugin was disabling: "
+                                    + exception.getMessage());
                         }
                     }
                 }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to handle disable: " + exception.getMessage());
+            LogHelper.LOGGER.warning(() -> "Failed to process saved player locations while the plugin was disabling: "
+                    + exception.getMessage());
         }
     }
 

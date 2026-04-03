@@ -1,8 +1,14 @@
 limbo:
+  # Name of the world where unauthenticated players will be placed.
   name: limbo
+  # Generate the limbo world automatically if it does not exist.
+  # Disable this if you want to create and manage the world manually.
+  generate-world: true
   spawn:
+    # Spawn position inside the limbo world.
     x: 7
     y: 70
     z: 7
   platform:
+    # Radius of the generated spawn platform in blocks.
     radius: 1

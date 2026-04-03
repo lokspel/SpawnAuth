@@ -19,6 +19,7 @@ public class LimboWorldManager {
 
     public World createLimboWorld() {
         String worldName = plugin.getConfig().getString("limbo.name", "limbo");
+        boolean generateWorld = plugin.getConfig().getBoolean("limbo.generate-world", true);
         int spawnX = plugin.getConfig().getInt("limbo.spawn.x", 7);
         int spawnY = plugin.getConfig().getInt("limbo.spawn.y", 70);
         int spawnZ = plugin.getConfig().getInt("limbo.spawn.z", 7);
@@ -30,10 +31,17 @@ public class LimboWorldManager {
             return world;
         }
 
+        if (!generateWorld) {
+            LogHelper.LOGGER.severe(() -> "The configured limbo world '" + worldName + "' was not found.");
+            LogHelper.LOGGER.severe("Automatic world generation is disabled at config.yml -> limbo.generate-world.");
+            LogHelper.LOGGER.severe("Create that world manually or set limbo.generate-world to true.");
+            return null;
+        }
+
         if (FoliaAPI.isFolia()) {
-            LogHelper.LOGGER.severe("On Folia, automatic world creation is not supported.");
-            LogHelper.LOGGER.severe("Create the limbo world manually and set its name in config.yml at limbo.name.");
-            LogHelper.LOGGER.severe("Current limbo world name: " + worldName);
+            LogHelper.LOGGER.severe("Automatic limbo world creation is not supported on Folia.");
+            LogHelper.LOGGER.severe("Create the world manually first, then point config.yml -> limbo.name to that world.");
+            LogHelper.LOGGER.severe(() -> "Configured limbo world name: " + worldName);
             return null;
         }
 
@@ -44,7 +52,7 @@ public class LimboWorldManager {
 
         world = plugin.getServer().createWorld(worldCreator);
         if (world == null) {
-            LogHelper.LOGGER.severe("Failed to create limbo world.");
+            LogHelper.LOGGER.severe(() -> "The server returned null while creating the limbo world '" + worldName + "'.");
             return null;
         }
 
@@ -58,7 +66,8 @@ public class LimboWorldManager {
         Location spawnLocation = new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5);
 
         if (FoliaAPI.isFolia()) {
-            LogHelper.LOGGER.warning("Skipping limbo world gamerule configuration on Folia. Configure world settings manually for: " + world.getName());
+            LogHelper.LOGGER.warning(() -> "Skipped automatic gamerule setup for limbo world '" + world.getName()
+                    + "' because Folia requires this world to be configured manually.");
             return;
         }
 

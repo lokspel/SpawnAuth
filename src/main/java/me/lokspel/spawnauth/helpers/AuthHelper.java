@@ -6,7 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public final class AuthHelper {
+    private static final Map<String, Boolean> PLUGIN_ENABLED_CACHE = new ConcurrentHashMap<>();
+
     private AuthHelper() {
     }
 
@@ -33,7 +38,9 @@ public final class AuthHelper {
     }
 
     private static boolean isPluginEnabled(String pluginName) {
-        Plugin plugin = Bukkit.getPluginManager().getPlugin(pluginName);
-        return plugin != null && plugin.isEnabled();
+        return PLUGIN_ENABLED_CACHE.computeIfAbsent(pluginName, name -> {
+            Plugin plugin = Bukkit.getPluginManager().getPlugin(name);
+            return plugin != null && plugin.isEnabled();
+        });
     }
 }

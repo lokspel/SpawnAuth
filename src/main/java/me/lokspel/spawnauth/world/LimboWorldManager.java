@@ -23,6 +23,8 @@ public class LimboWorldManager {
         int spawnX = plugin.getConfig().getInt("limbo.spawn.x", 7);
         int spawnY = plugin.getConfig().getInt("limbo.spawn.y", 70);
         int spawnZ = plugin.getConfig().getInt("limbo.spawn.z", 7);
+        float spawnYaw = (float) plugin.getConfig().getDouble("limbo.spawn.yaw", 0);
+        float spawnPitch = (float) plugin.getConfig().getDouble("limbo.spawn.pitch", 0);
         int platformRadius = plugin.getConfig().getInt("limbo.platform.radius", 1);
 
         World world = plugin.getServer().getWorld(worldName);
@@ -56,14 +58,14 @@ public class LimboWorldManager {
             return null;
         }
 
-        configureLimboWorld(world, spawnX, spawnY, spawnZ);
+        configureLimboWorld(world, spawnX, spawnY, spawnZ, spawnYaw, spawnPitch);
         gameHelper.setAuthWorld(world);
-        gameHelper.setAuthSpawnLocation(new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5));
+        gameHelper.setAuthSpawnLocation(new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5, spawnYaw, spawnPitch));
         return world;
     }
 
-    private void configureLimboWorld(World world, int spawnX, int spawnY, int spawnZ) {
-        Location spawnLocation = new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5);
+    private void configureLimboWorld(World world, int spawnX, int spawnY, int spawnZ, float spawnYaw, float spawnPitch) {
+        Location spawnLocation = new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5, spawnYaw, spawnPitch);
 
         if (FoliaAPI.isFolia()) {
             LogHelper.LOGGER.warning(() -> "Skipped automatic gamerule setup for limbo world '" + world.getName()

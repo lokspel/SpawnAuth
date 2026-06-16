@@ -9,6 +9,9 @@ limbo:
     x: 7
     y: 70
     z: 7
+    # Facing direction when teleported to the spawn.
+    yaw: 0
+    pitch: 0
   platform:
     # Radius of the generated spawn platform in blocks.
     radius: 1

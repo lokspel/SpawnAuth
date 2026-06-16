@@ -12,14 +12,18 @@ public class GameHelper {
     private final double authSpawnX;
     private final double authSpawnY;
     private final double authSpawnZ;
+    private final float authSpawnYaw;
+    private final float authSpawnPitch;
     private World authWorld;
     private Location authSpawnLocation;
 
-    public GameHelper(String authWorldName, double authSpawnX, double authSpawnY, double authSpawnZ) {
+    public GameHelper(String authWorldName, double authSpawnX, double authSpawnY, double authSpawnZ, float authSpawnYaw, float authSpawnPitch) {
         this.authWorldName = authWorldName;
         this.authSpawnX = authSpawnX;
         this.authSpawnY = authSpawnY;
         this.authSpawnZ = authSpawnZ;
+        this.authSpawnYaw = authSpawnYaw;
+        this.authSpawnPitch = authSpawnPitch;
     }
 
     public Location getSpawnLocation(World world) {
@@ -37,7 +41,7 @@ public class GameHelper {
         if (authSpawnLocation == null) {
             World authWorld = getAuthWorld();
             if (authWorld != null) {
-                authSpawnLocation = new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5);
+                authSpawnLocation = new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5, authSpawnYaw, authSpawnPitch);
             }
         }
         return authSpawnLocation != null ? authSpawnLocation.clone() : null;
@@ -131,7 +135,7 @@ public class GameHelper {
 
     public void setAuthWorld(World authWorld) {
         this.authWorld = authWorld;
-        this.authSpawnLocation = authWorld != null ? new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5) : null;
+        this.authSpawnLocation = authWorld != null ? new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5, authSpawnYaw, authSpawnPitch) : null;
     }
 
     public void setAuthSpawnLocation(Location authSpawnLocation) {

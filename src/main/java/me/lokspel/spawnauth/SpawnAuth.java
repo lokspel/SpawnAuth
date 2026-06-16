@@ -48,7 +48,9 @@ public final class SpawnAuth extends JavaPlugin {
                 getConfig().getString("limbo.name", "limbo"),
                 getConfig().getDouble("limbo.spawn.x", 7),
                 getConfig().getDouble("limbo.spawn.y", 70),
-                getConfig().getDouble("limbo.spawn.z", 7)
+                getConfig().getDouble("limbo.spawn.z", 7),
+                (float) getConfig().getDouble("limbo.spawn.yaw", 0),
+                (float) getConfig().getDouble("limbo.spawn.pitch", 0)
         );
 
         // Setup data base

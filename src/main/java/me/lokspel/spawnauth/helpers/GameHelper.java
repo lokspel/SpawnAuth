@@ -64,7 +64,7 @@ public class GameHelper {
     public Location getAuthSpawnLocation(World.Environment environment) {
         if (!"vanilla".equals(config.getSpawnMode())) {
             if (authSpawnLocation == null) {
-                World world = getAuthWorld();
+                World world = Bukkit.getWorld(config.getGenerationWorldName());
                 if (world == null) return null;
                 authSpawnLocation = new Location(world, config.getFixedSpawnX() + 0.5, config.getFixedSpawnY(), config.getFixedSpawnZ() + 0.5, config.getFixedSpawnYaw(), config.getFixedSpawnPitch());
             }

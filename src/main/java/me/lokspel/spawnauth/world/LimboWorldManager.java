@@ -31,6 +31,12 @@ public class LimboWorldManager {
             requireWorld(config.getEndName(), World.Environment.THE_END);
         }
 
+        if (!"vanilla".equals(config.getSpawnMode())) {
+            World limbo = requireWorld(config.getGenerationWorldName(), World.Environment.NORMAL);
+            if (limbo == null) return null;
+            return limbo;
+        }
+
         return overworld;
     }
 

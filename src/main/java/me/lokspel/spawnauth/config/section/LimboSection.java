@@ -32,6 +32,10 @@ public class LimboSection {
         return config.getBoolean(key(".worlds.fallback"), true);
     }
 
+    public String getGenerationWorldName() {
+        return config.getString(key(".generation.world"), "limbo");
+    }
+
     public boolean isGenerateWorld() {
         return config.getBoolean(key(".generation.create"), false);
     }

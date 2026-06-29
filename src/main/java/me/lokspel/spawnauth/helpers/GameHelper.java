@@ -1,50 +1,62 @@
 package me.lokspel.spawnauth.helpers;
 
+import me.lokspel.spawnauth.config.section.LimboSection;
 import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRules;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.WeatherType;
 
 public class GameHelper {
-    private final String authWorldName;
-    private final double authSpawnX;
-    private final double authSpawnY;
-    private final double authSpawnZ;
-    private final float authSpawnYaw;
-    private final float authSpawnPitch;
+    private final LimboSection config;
     private World authWorld;
     private Location authSpawnLocation;
 
-    public GameHelper(String authWorldName, double authSpawnX, double authSpawnY, double authSpawnZ, float authSpawnYaw, float authSpawnPitch) {
-        this.authWorldName = authWorldName;
-        this.authSpawnX = authSpawnX;
-        this.authSpawnY = authSpawnY;
-        this.authSpawnZ = authSpawnZ;
-        this.authSpawnYaw = authSpawnYaw;
-        this.authSpawnPitch = authSpawnPitch;
+    public String getAuthWorldName() {
+        return config.getWorldName();
     }
 
-    public Location getSpawnLocation(World world) {
-        return world != null ? world.getSpawnLocation().toCenterLocation() : null;
+    public GameHelper(LimboSection config) {
+        this.config = config;
     }
 
     public World getAuthWorld() {
-        if (authWorld == null) {
-            authWorld = Bukkit.getWorld(authWorldName);
+        World current = Bukkit.getWorld(config.getWorldName());
+        if (current == null) {
+            authWorld = null;
+            authSpawnLocation = null;
+        } else {
+            authWorld = current;
         }
         return authWorld;
     }
 
     public Location getAuthSpawnLocation() {
-        if (authSpawnLocation == null) {
-            World authWorld = getAuthWorld();
-            if (authWorld != null) {
-                authSpawnLocation = new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5, authSpawnYaw, authSpawnPitch);
+        if (!"vanilla".equals(config.getSpawnMode())) {
+            if (authSpawnLocation == null) {
+                World world = getAuthWorld();
+                if (world == null) return null;
+                authSpawnLocation = new Location(world, config.getFixedSpawnX() + 0.5, config.getFixedSpawnY(), config.getFixedSpawnZ() + 0.5, config.getFixedSpawnYaw(), config.getFixedSpawnPitch());
             }
+            return authSpawnLocation.clone();
         }
-        return authSpawnLocation != null ? authSpawnLocation.clone() : null;
+
+        World authWorld = getAuthWorld();
+        if (authWorld == null) return null;
+
+        Location spawn = authWorld.getSpawnLocation();
+        int radius = authWorld.getGameRuleValue(GameRules.RESPAWN_RADIUS);
+        if (radius > 0) {
+            spawn.add(
+                    (Math.random() - 0.5) * 2 * radius,
+                    0,
+                    (Math.random() - 0.5) * 2 * radius
+            );
+            spawn.setY(authWorld.getHighestBlockYAt(spawn.getBlockX(), spawn.getBlockZ()));
+        }
+        return spawn;
     }
 
     public boolean isInAuthWorld(Location location) {
@@ -97,7 +109,8 @@ public class GameHelper {
             return;
         }
 
-        player.setCollidable(!isInAuthWorld(location));
+        boolean inLimbo = isInAuthWorld(location) && !isAuthenticated(player);
+        player.setCollidable(!inLimbo);
     }
 
     public void updateLimboWeather(Player player) {
@@ -109,7 +122,7 @@ public class GameHelper {
             return;
         }
 
-        if (isInAuthWorld(location)) {
+        if (isInAuthWorld(location) && !isAuthenticated(player)) {
             player.setPlayerWeather(WeatherType.CLEAR);
             return;
         }
@@ -135,7 +148,9 @@ public class GameHelper {
 
     public void setAuthWorld(World authWorld) {
         this.authWorld = authWorld;
-        this.authSpawnLocation = authWorld != null ? new Location(authWorld, authSpawnX + 0.5, authSpawnY, authSpawnZ + 0.5, authSpawnYaw, authSpawnPitch) : null;
+        this.authSpawnLocation = authWorld != null && !"vanilla".equals(config.getSpawnMode())
+                ? new Location(authWorld, config.getFixedSpawnX() + 0.5, config.getFixedSpawnY(), config.getFixedSpawnZ() + 0.5, config.getFixedSpawnYaw(), config.getFixedSpawnPitch())
+                : null;
     }
 
     public void setAuthSpawnLocation(Location authSpawnLocation) {

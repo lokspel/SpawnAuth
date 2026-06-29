@@ -1,6 +1,7 @@
 package me.lokspel.spawnauth.world;
 
 import me.lokspel.spawnauth.SpawnAuth;
+import me.lokspel.spawnauth.config.section.LimboSection;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Location;
@@ -11,21 +12,23 @@ import me.lokspel.spawnauth.helpers.LogHelper;
 public class LimboWorldManager {
     private final SpawnAuth plugin;
     private final GameHelper gameHelper;
+    private final LimboSection config;
 
-    public LimboWorldManager(SpawnAuth plugin, GameHelper gameHelper) {
+    public LimboWorldManager(SpawnAuth plugin, GameHelper gameHelper, LimboSection config) {
         this.plugin = plugin;
         this.gameHelper = gameHelper;
+        this.config = config;
     }
 
     public World createLimboWorld() {
-        String worldName = plugin.getConfig().getString("limbo.name", "limbo");
-        boolean generateWorld = plugin.getConfig().getBoolean("limbo.generate-world", true);
-        int spawnX = plugin.getConfig().getInt("limbo.spawn.x", 7);
-        int spawnY = plugin.getConfig().getInt("limbo.spawn.y", 70);
-        int spawnZ = plugin.getConfig().getInt("limbo.spawn.z", 7);
-        float spawnYaw = (float) plugin.getConfig().getDouble("limbo.spawn.yaw", 0);
-        float spawnPitch = (float) plugin.getConfig().getDouble("limbo.spawn.pitch", 0);
-        int platformRadius = plugin.getConfig().getInt("limbo.platform.radius", 1);
+        String worldName = config.getWorldName();
+        boolean generateWorld = config.isGenerateWorld();
+        int spawnX = (int) config.getFixedSpawnX();
+        int spawnY = (int) config.getFixedSpawnY();
+        int spawnZ = (int) config.getFixedSpawnZ();
+        float spawnYaw = config.getFixedSpawnYaw();
+        float spawnPitch = config.getFixedSpawnPitch();
+        int platformRadius = config.getPlatformRadius();
 
         World world = plugin.getServer().getWorld(worldName);
         if (world != null) {
@@ -35,14 +38,14 @@ public class LimboWorldManager {
 
         if (!generateWorld) {
             LogHelper.LOGGER.severe(() -> "The configured limbo world '" + worldName + "' was not found.");
-            LogHelper.LOGGER.severe("Automatic world generation is disabled at config.yml -> limbo.generate-world.");
-            LogHelper.LOGGER.severe("Create that world manually or set limbo.generate-world to true.");
+            LogHelper.LOGGER.severe("Automatic world generation is disabled at config.yml -> limbo.create.");
+            LogHelper.LOGGER.severe("Create that world manually or set limbo.create to true.");
             return null;
         }
 
         if (FoliaAPI.isFolia()) {
             LogHelper.LOGGER.severe("Automatic limbo world creation is not supported on Folia.");
-            LogHelper.LOGGER.severe("Create the world manually first, then point config.yml -> limbo.name to that world.");
+            LogHelper.LOGGER.severe("Create the world manually first, then point config.yml -> limbo.world to that world.");
             LogHelper.LOGGER.severe(() -> "Configured limbo world name: " + worldName);
             return null;
         }

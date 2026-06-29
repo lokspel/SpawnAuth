@@ -8,6 +8,7 @@ import me.lokspel.spawnauth.events.authme.AuthMeLogoutListener;
 import me.lokspel.spawnauth.events.authme.AuthMeUnregisterListener;
 import me.lokspel.spawnauth.events.nlogin.NLoginLoginListener;
 import me.lokspel.spawnauth.events.nlogin.NLoginUnregisterListener;
+import me.lokspel.spawnauth.config.ConfigManager;
 import me.lokspel.spawnauth.helpers.LogHelper;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -35,8 +36,10 @@ public final class SpawnAuth extends JavaPlugin {
             getServer().shutdown();
         }
 
-        saveDefaultConfig();
         FoliaAPI.init(this);
+
+        ConfigManager configManager = new ConfigManager(this);
+        configManager.loadConfig();
 
         String authPluginName = getAuthPluginName();
         if (authPluginName == null) {
@@ -44,19 +47,12 @@ public final class SpawnAuth extends JavaPlugin {
         }
 
         saveHelper = new SaveHelper(getDataFolder());
-        gameHelper = new GameHelper(
-                getConfig().getString("limbo.name", "limbo"),
-                getConfig().getDouble("limbo.spawn.x", 7),
-                getConfig().getDouble("limbo.spawn.y", 70),
-                getConfig().getDouble("limbo.spawn.z", 7),
-                (float) getConfig().getDouble("limbo.spawn.yaw", 0),
-                (float) getConfig().getDouble("limbo.spawn.pitch", 0)
-        );
+        gameHelper = new GameHelper(configManager.getLimbo());
 
         // Setup data base
         saveHelper.setupDataBase();
 
-        if (new LimboWorldManager(this, gameHelper).createLimboWorld() == null) {
+        if (new LimboWorldManager(this, gameHelper, configManager.getLimbo()).createLimboWorld() == null) {
             return;
         }
 

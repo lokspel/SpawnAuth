@@ -1,17 +1,22 @@
 limbo:
-  # Name of the world where unauthenticated players will be placed.
-  name: limbo
-  # Generate the limbo world automatically if it does not exist.
-  # Disable this if you want to create and manage the world manually.
-  generate-world: true
-  spawn:
-    # Spawn position inside the limbo world.
+  # World where unauthenticated players are placed.
+  world: world
+
+  # Automatically create the world if it doesn't exist (requires a non-default world name).
+  create: false
+
+  # How to choose the spawn point for unauthenticated players:
+  #   vanilla  - use the world's natural spawn point with RESPAWN_RADIUS scatter
+  #   fixed    - use the coordinates below
+  spawn-mode: vanilla
+
+  # Fixed spawn coordinates (used when spawn-mode is "fixed").
+  fixed-spawn:
     x: 7
     y: 70
     z: 7
-    # Facing direction when teleported to the spawn.
     yaw: 0
     pitch: 0
-  platform:
-    # Radius of the generated spawn platform in blocks.
-    radius: 1
+
+  # Platform radius for the auto-generated void world (ignored when using existing worlds).
+  platform-radius: 1

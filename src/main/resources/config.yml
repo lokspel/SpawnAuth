@@ -1,16 +1,40 @@
-limbo:
-  # World where unauthenticated players are placed.
-  world: world
+# Which world to use per dimension when spawn-mode is "vanilla".
+# Players are scattered around the world's natural spawn point using the
+# respawnRadius gamerule. Set /gamerule respawnRadius <value> in each world
+# to control the scatter distance (0 = no scatter, exact spawn).
+# If a dimension entry is removed (or left empty), the fallback option
+# controls whether the player falls back to the overworld world or is
+# not teleported at all.
+worlds:
+  overworld: world
+  nether: world_nether
+  end: world_the_end
+  # When enabled, players from a missing/unconfigured dimension are sent
+  # to the overworld world instead. When disabled, they are not teleported.
+  fallback: true
 
-  # Automatically create the world if it doesn't exist (requires a non-default world name).
+# How to choose the spawn point for unauthenticated players:
+#   vanilla  - place the player in the corresponding dimension's world
+#              (specified under "worlds") and scatter them around its
+#              spawn using the respawnRadius gamerule.
+#   fixed    - place the player in the void world (generation.world)
+#              at the exact coordinates specified under generation.fixed-spawn.
+spawn-mode: vanilla
+
+# Settings for the auto-generated limbo void world. Only used when
+# spawn-mode is "fixed". For "vanilla" mode you only need the "worlds" block
+# and the respawnRadius gamerule in those worlds.
+generation:
+  # Name of the limbo void world (used when spawn-mode: fixed).
+  world: limbo
+
+  # If true, automatically creates the void world when it doesn't exist.
+  # The void world is always created as an overworld-type world with a small
+  # platform at the fixed-spawn coordinates. Nether/end worlds cannot be
+  # auto-created; they must exist on the server already.
   create: false
 
-  # How to choose the spawn point for unauthenticated players:
-  #   vanilla  - use the world's natural spawn point with RESPAWN_RADIUS scatter
-  #   fixed    - use the coordinates below
-  spawn-mode: vanilla
-
-  # Fixed spawn coordinates (used when spawn-mode is "fixed").
+  # Fixed spawn coordinates (used when spawn-mode: fixed).
   fixed-spawn:
     x: 7
     y: 70
@@ -18,5 +42,6 @@ limbo:
     yaw: 0
     pitch: 0
 
-  # Platform radius for the auto-generated void world (ignored when using existing worlds).
+  # Radius of the stone/grass platform around the fixed spawn in the
+  # auto-generated void world. Ignored when using existing worlds.
   platform-radius: 1

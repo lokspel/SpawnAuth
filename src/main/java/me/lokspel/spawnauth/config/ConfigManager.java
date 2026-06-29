@@ -30,7 +30,7 @@ public class ConfigManager {
         }
 
         FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        limbo = new LimboSection(config, "limbo");
+        limbo = new LimboSection(config, "");
     }
 
     public LimboSection getLimbo() {

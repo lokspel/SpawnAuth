@@ -14,26 +14,54 @@ public class GameHelper {
     private World authWorld;
     private Location authSpawnLocation;
 
-    public String getAuthWorldName() {
-        return config.getWorldName();
-    }
-
     public GameHelper(LimboSection config) {
         this.config = config;
     }
 
     public World getAuthWorld() {
-        World current = Bukkit.getWorld(config.getWorldName());
-        if (current == null) {
-            authWorld = null;
-            authSpawnLocation = null;
-        } else {
-            authWorld = current;
+        return getAuthWorld(World.Environment.NORMAL);
+    }
+
+    public World getAuthWorld(World.Environment environment) {
+        String name = worldNameFor(environment);
+        if (name != null) {
+            World world = Bukkit.getWorld(name);
+            if (world != null) return world;
         }
-        return authWorld;
+
+        if (environment != World.Environment.NORMAL && config.isFallbackEnabled()) {
+            World world = Bukkit.getWorld(config.getOverworldName());
+            if (world != null) return world;
+        }
+
+        authWorld = null;
+        authSpawnLocation = null;
+        return null;
+    }
+
+    private String worldNameFor(World.Environment environment) {
+        return switch (environment) {
+            case NETHER -> {
+                String n = config.getNetherName();
+                yield n != null ? n : (config.isFallbackEnabled() ? config.getOverworldName() : null);
+            }
+            case THE_END -> {
+                String e = config.getEndName();
+                yield e != null ? e : (config.isFallbackEnabled() ? config.getOverworldName() : null);
+            }
+            default -> config.getOverworldName();
+        };
     }
 
     public Location getAuthSpawnLocation() {
+        return getAuthSpawnLocation(World.Environment.NORMAL);
+    }
+
+    public Location getAuthSpawnLocation(Player player) {
+        return getAuthSpawnLocation(player.getWorld().getEnvironment());
+    }
+
+    public Location getAuthSpawnLocation(World.Environment environment) {
         if (!"vanilla".equals(config.getSpawnMode())) {
             if (authSpawnLocation == null) {
                 World world = getAuthWorld();
@@ -43,10 +71,10 @@ public class GameHelper {
             return authSpawnLocation.clone();
         }
 
-        World authWorld = getAuthWorld();
-        if (authWorld == null) return null;
+        World world = getAuthWorld(environment);
+        if (world == null) return null;
 
-        return getServerSpawnLocation(authWorld);
+        return getServerSpawnLocation(world);
     }
 
     private Location getServerSpawnLocation(World world) {
@@ -97,20 +125,18 @@ public class GameHelper {
     }
 
     public boolean isInAuthWorld(Location location) {
-        World authWorld = getAuthWorld();
-        return location != null && location.getWorld() != null && authWorld != null && location.getWorld().equals(authWorld);
+        if (location == null || location.getWorld() == null) return false;
+        String name = location.getWorld().getName();
+        return name.equals(config.getOverworldName())
+                || name.equals(config.getNetherName())
+                || name.equals(config.getEndName());
     }
 
     public boolean isAtAuthSpawn(Location location) {
-        Location authSpawn = getAuthSpawnLocation();
-        if (location == null || authSpawn == null || location.getWorld() == null || authSpawn.getWorld() == null) {
-            return false;
-        }
-
-        if (!location.getWorld().equals(authSpawn.getWorld())) {
-            return false;
-        }
-
+        if (location == null || location.getWorld() == null) return false;
+        Location authSpawn = getAuthSpawnLocation(location.getWorld().getEnvironment());
+        if (authSpawn == null || authSpawn.getWorld() == null) return false;
+        if (!location.getWorld().equals(authSpawn.getWorld())) return false;
         return location.distanceSquared(authSpawn) <= 4.0;
     }
 

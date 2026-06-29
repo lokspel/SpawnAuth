@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.sql.*;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SaveHelper {
 
@@ -45,6 +47,7 @@ public class SaveHelper {
             "DELETE FROM PlayerLocations WHERE name = ? RETURNING x, y, z, world";
 
     private final String dataBaseURL;
+    private final Map<String, Location> locationCache = new ConcurrentHashMap<>();
 
     public SaveHelper(File dataBaseFolder) {
         this.dataBaseURL = "jdbc:sqlite:" + dataBaseFolder + File.separator + "SpawnAuth.db";
@@ -67,6 +70,8 @@ public class SaveHelper {
             return;
         }
 
+        locationCache.put(name, location.clone());
+
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(UPSERT_LOCATION_SQL)) {
 
@@ -85,6 +90,8 @@ public class SaveHelper {
     }
 
     public void removeLocation(String name) {
+        locationCache.remove(name);
+
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(DELETE_LOCATION_SQL)) {
 
@@ -98,13 +105,24 @@ public class SaveHelper {
     }
 
     public Location getLocation(String name) {
+        Location cached = locationCache.get(name);
+        if (cached != null) {
+            return cached.clone();
+        }
+
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(SELECT_LOCATION_SQL)) {
 
             statement.setString(1, name);
 
             try (ResultSet result = statement.executeQuery()) {
-                return result.next() ? readLocation(result) : null;
+                if (result.next()) {
+                    Location location = readLocation(result);
+                    if (location != null) {
+                        locationCache.put(name, location.clone());
+                    }
+                    return location;
+                }
             }
 
         } catch (SQLException exception) {
@@ -116,6 +134,8 @@ public class SaveHelper {
     }
 
     public Location takeLocation(String name) {
+        locationCache.remove(name);
+
         try (Connection connection = getConnection();
              PreparedStatement statement = connection.prepareStatement(SELECT_AND_DELETE_LOCATION_SQL)) {
 
@@ -142,12 +162,12 @@ public class SaveHelper {
             while (result.next()) {
                 try {
                     Location location = readLocation(result);
-                    Player player = Bukkit.getPlayer(result.getString("name"));
+                    String name = result.getString("name");
+                    Player player = Bukkit.getPlayer(name);
 
                     if (location != null && player != null && player.isOnline()) {
                         gameHelper.teleport(player, location);
-
-                        delete.setString(1, player.getName());
+                        delete.setString(1, name);
                         delete.executeUpdate();
                     }
                 } catch (Exception exception) {
@@ -160,6 +180,8 @@ public class SaveHelper {
             LogHelper.LOGGER.warning(() ->
                     "Failed to process stored locations: " + exception.getMessage());
         }
+
+        locationCache.clear();
     }
 
     private Connection getConnection() throws SQLException {

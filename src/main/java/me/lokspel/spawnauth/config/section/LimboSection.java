@@ -12,39 +12,55 @@ public class LimboSection {
         this.path = path;
     }
 
-    public String getWorldName() {
-        return config.getString(path + ".world", "limbo");
+    private String key(String suffix) {
+        return path.isEmpty() ? suffix.substring(1) : path + suffix;
+    }
+
+    public String getOverworldName() {
+        return config.getString(key(".worlds.overworld"), "world");
+    }
+
+    public String getNetherName() {
+        return config.getString(key(".worlds.nether"));
+    }
+
+    public String getEndName() {
+        return config.getString(key(".worlds.end"));
+    }
+
+    public boolean isFallbackEnabled() {
+        return config.getBoolean(key(".worlds.fallback"), true);
     }
 
     public boolean isGenerateWorld() {
-        return config.getBoolean(path + ".create", true);
+        return config.getBoolean(key(".generation.create"), false);
     }
 
     public String getSpawnMode() {
-        return config.getString(path + ".spawn-mode", "vanilla");
+        return config.getString(key(".spawn-mode"), "vanilla");
     }
 
     public double getFixedSpawnX() {
-        return config.getDouble(path + ".fixed-spawn.x", 7);
+        return config.getDouble(key(".generation.fixed-spawn.x"), 7);
     }
 
     public double getFixedSpawnY() {
-        return config.getDouble(path + ".fixed-spawn.y", 70);
+        return config.getDouble(key(".generation.fixed-spawn.y"), 70);
     }
 
     public double getFixedSpawnZ() {
-        return config.getDouble(path + ".fixed-spawn.z", 7);
+        return config.getDouble(key(".generation.fixed-spawn.z"), 7);
     }
 
     public float getFixedSpawnYaw() {
-        return (float) config.getDouble(path + ".fixed-spawn.yaw", 0);
+        return (float) config.getDouble(key(".generation.fixed-spawn.yaw"), 0);
     }
 
     public float getFixedSpawnPitch() {
-        return (float) config.getDouble(path + ".fixed-spawn.pitch", 0);
+        return (float) config.getDouble(key(".generation.fixed-spawn.pitch"), 0);
     }
 
     public int getPlatformRadius() {
-        return config.getInt(path + ".platform-radius", 1);
+        return config.getInt(key(".generation.platform-radius"), 1);
     }
 }

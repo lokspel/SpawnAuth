@@ -26,7 +26,7 @@ public class OnPlayerRespawnEvent implements Listener {
                 saveHelper.saveLocation(player.getName(), respawnLocation);
             }
 
-            Location authSpawn = gameHelper.getAuthSpawnLocation();
+            Location authSpawn = gameHelper.getAuthSpawnLocation(player);
             if (authSpawn != null) {
                 event.setRespawnLocation(authSpawn);
                 gameHelper.updateLimboCollision(player, authSpawn);

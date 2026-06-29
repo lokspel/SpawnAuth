@@ -8,20 +8,41 @@ import java.io.File;
 import java.sql.*;
 
 public class SaveHelper {
+
     //noinspection SqlNoDataSourceInspection
-    private static final String CREATE_TABLE_SQL = "CREATE TABLE IF NOT EXISTS PlayerLocations (name TEXT NOT NULL PRIMARY KEY, x REAL NOT NULL, y REAL NOT NULL, z REAL NOT NULL, world TEXT NOT NULL)";
+    private static final String CREATE_TABLE_SQL =
+            "CREATE TABLE IF NOT EXISTS PlayerLocations (" +
+                    "name TEXT PRIMARY KEY," +
+                    "x REAL NOT NULL," +
+                    "y REAL NOT NULL," +
+                    "z REAL NOT NULL," +
+                    "world TEXT NOT NULL" +
+                    ")";
+
     //noinspection SqlNoDataSourceInspection
-    private static final String CREATE_INDEX_SQL = "CREATE UNIQUE INDEX IF NOT EXISTS idx_player_locations_name ON PlayerLocations(name)";
+    private static final String UPSERT_LOCATION_SQL =
+            "INSERT INTO PlayerLocations (name, x, y, z, world) VALUES (?, ?, ?, ?, ?) " +
+                    "ON CONFLICT(name) DO UPDATE SET " +
+                    "x = excluded.x, " +
+                    "y = excluded.y, " +
+                    "z = excluded.z, " +
+                    "world = excluded.world";
+
     //noinspection SqlNoDataSourceInspection
-    private static final String UPSERT_LOCATION_SQL = "INSERT INTO PlayerLocations (name, x, y, z, world) VALUES (?, ?, ?, ?, ?) ON CONFLICT(name) DO UPDATE SET x = excluded.x, y = excluded.y, z = excluded.z, world = excluded.world";
+    private static final String DELETE_LOCATION_SQL =
+            "DELETE FROM PlayerLocations WHERE name = ?";
+
     //noinspection SqlNoDataSourceInspection
-    private static final String DELETE_LOCATION_SQL = "DELETE FROM PlayerLocations WHERE name = ?";
+    private static final String SELECT_LOCATION_SQL =
+            "SELECT x, y, z, world FROM PlayerLocations WHERE name = ?";
+
     //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_LOCATION_SQL = "SELECT * FROM PlayerLocations WHERE name = ?";
+    private static final String SELECT_ALL_LOCATIONS_SQL =
+            "SELECT name, x, y, z, world FROM PlayerLocations";
+
     //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_ALL_LOCATIONS_SQL = "SELECT * FROM PlayerLocations";
-    //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_AND_DELETE_LOCATION_SQL = "DELETE FROM PlayerLocations WHERE name = ? RETURNING x, y, z, world";
+    private static final String SELECT_AND_DELETE_LOCATION_SQL =
+            "DELETE FROM PlayerLocations WHERE name = ? RETURNING x, y, z, world";
 
     private final String dataBaseURL;
 
@@ -30,17 +51,14 @@ public class SaveHelper {
     }
 
     public void setupDataBase() {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(CREATE_TABLE_SQL)) {
-                preparedStatement.executeUpdate();
-            }
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement()) {
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(CREATE_INDEX_SQL)) {
-                preparedStatement.executeUpdate();
-            }
+            statement.executeUpdate(CREATE_TABLE_SQL);
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to initialize the SQLite database used for saved player locations: "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to initialize the SQLite database: " + exception.getMessage());
         }
     }
 
@@ -49,101 +67,103 @@ public class SaveHelper {
             return;
         }
 
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(UPSERT_LOCATION_SQL)) {
-                preparedStatement.setString(1, name);
-                preparedStatement.setDouble(2, location.getX());
-                preparedStatement.setDouble(3, location.getY());
-                preparedStatement.setDouble(4, location.getZ());
-                preparedStatement.setString(5, location.getWorld().getName());
-                preparedStatement.executeUpdate();
-            }
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(UPSERT_LOCATION_SQL)) {
+
+            statement.setString(1, name);
+            statement.setDouble(2, location.getX());
+            statement.setDouble(3, location.getY());
+            statement.setDouble(4, location.getZ());
+            statement.setString(5, location.getWorld().getName());
+
+            statement.executeUpdate();
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to save the stored location for player '" + name + "': "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to save location for '" + name + "': " + exception.getMessage());
         }
     }
 
     public void removeLocation(String name) {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(DELETE_LOCATION_SQL)) {
-                preparedStatement.setString(1, name);
-                preparedStatement.executeUpdate();
-            }
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(DELETE_LOCATION_SQL)) {
+
+            statement.setString(1, name);
+            statement.executeUpdate();
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to delete the stored location for player '" + name + "': "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to remove location for '" + name + "': " + exception.getMessage());
         }
     }
 
     public Location getLocation(String name) {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_LOCATION_SQL)) {
-                preparedStatement.setString(1, name);
-                try (ResultSet result = preparedStatement.executeQuery()) {
-                    if (result.next()) {
-                        return readLocation(result);
-                    }
-                }
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_LOCATION_SQL)) {
+
+            statement.setString(1, name);
+
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? readLocation(result) : null;
             }
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to load the stored location for player '" + name + "': "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to load location for '" + name + "': " + exception.getMessage());
         }
+
         return null;
     }
 
     public Location takeLocation(String name) {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_AND_DELETE_LOCATION_SQL)) {
-                preparedStatement.setString(1, name);
-                try (ResultSet result = preparedStatement.executeQuery()) {
-                    if (result.next()) {
-                        return readLocation(result);
-                    }
-                }
+        try (Connection connection = getConnection();
+             PreparedStatement statement = connection.prepareStatement(SELECT_AND_DELETE_LOCATION_SQL)) {
+
+            statement.setString(1, name);
+
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? readLocation(result) : null;
             }
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to load and remove the stored location for player '" + name + "': "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to load and remove location for '" + name + "': " + exception.getMessage());
         }
+
         return null;
     }
 
     public void handleDisable(GameHelper gameHelper) {
-        try (Connection connection = getConnection()) {
-            try (PreparedStatement preparedStatement = connection.prepareStatement(SELECT_ALL_LOCATIONS_SQL)) {
-                try (ResultSet result = preparedStatement.executeQuery()) {
-                    while (result.next()) {
-                        try {
-                            Location location = readLocation(result);
-                            Player player = Bukkit.getPlayer(result.getString("name"));
+        try (Connection connection = getConnection();
+             PreparedStatement select = connection.prepareStatement(SELECT_ALL_LOCATIONS_SQL);
+             PreparedStatement delete = connection.prepareStatement(DELETE_LOCATION_SQL);
+             ResultSet result = select.executeQuery()) {
 
-                            if (location != null && player != null && player.isOnline()) {
-                                gameHelper.teleport(player, location);
-                                removeLocation(player.getName());
-                            }
-                        } catch (Exception exception) {
-                            LogHelper.LOGGER.warning(() -> "Failed to restore a player's saved location while the plugin was disabling: "
-                                    + exception.getMessage());
-                        }
+            while (result.next()) {
+                try {
+                    Location location = readLocation(result);
+                    Player player = Bukkit.getPlayer(result.getString("name"));
+
+                    if (location != null && player != null && player.isOnline()) {
+                        gameHelper.teleport(player, location);
+
+                        delete.setString(1, player.getName());
+                        delete.executeUpdate();
                     }
+                } catch (Exception exception) {
+                    LogHelper.LOGGER.warning(() ->
+                            "Failed to restore player location: " + exception.getMessage());
                 }
             }
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() -> "Failed to process saved player locations while the plugin was disabling: "
-                    + exception.getMessage());
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to process stored locations: " + exception.getMessage());
         }
     }
 
     private Connection getConnection() throws SQLException {
-        Connection connection = DriverManager.getConnection(dataBaseURL);
-        try (Statement statement = connection.createStatement()) {
-            statement.execute("PRAGMA journal_mode=WAL");
-            statement.execute("PRAGMA synchronous=NORMAL");
-            statement.execute("PRAGMA busy_timeout=5000");
-        }
-        return connection;
+        return DriverManager.getConnection(dataBaseURL);
     }
 
     private Location readLocation(ResultSet result) throws SQLException {
@@ -152,6 +172,11 @@ public class SaveHelper {
             return null;
         }
 
-        return new Location(world, result.getDouble("x"), result.getDouble("y"), result.getDouble("z"));
+        return new Location(
+                world,
+                result.getDouble("x"),
+                result.getDouble("y"),
+                result.getDouble("z")
+        );
     }
 }

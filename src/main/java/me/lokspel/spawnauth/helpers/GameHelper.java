@@ -46,17 +46,54 @@ public class GameHelper {
         World authWorld = getAuthWorld();
         if (authWorld == null) return null;
 
-        Location spawn = authWorld.getSpawnLocation();
-        int radius = authWorld.getGameRuleValue(GameRules.RESPAWN_RADIUS);
-        if (radius > 0) {
-            spawn.add(
-                    (Math.random() - 0.5) * 2 * radius,
-                    0,
-                    (Math.random() - 0.5) * 2 * radius
-            );
-            spawn.setY(authWorld.getHighestBlockYAt(spawn.getBlockX(), spawn.getBlockZ()));
+        return getServerSpawnLocation(authWorld);
+    }
+
+    private Location getServerSpawnLocation(World world) {
+        Location worldSpawn = world.getSpawnLocation();
+        Integer radius = world.getGameRuleValue(GameRules.RESPAWN_RADIUS);
+        if (radius == null || radius <= 0) {
+            return worldSpawn;
         }
-        return spawn;
+        int dx = (int) (Math.random() * (radius * 2 + 1)) - radius;
+        int dz = (int) (Math.random() * (radius * 2 + 1)) - radius;
+        int x = (int) worldSpawn.getX() + dx;
+        int z = (int) worldSpawn.getZ() + dz;
+        Integer y = getSafeSpawnY(world, x, z, worldSpawn.getBlockY());
+        if (y == null) {
+            return worldSpawn;
+        }
+        double spawnX = x + 0.5;
+        double spawnZ = z + 0.5;
+        float yaw = (float) Math.toDegrees(Math.atan2(-(worldSpawn.getX() - spawnX), worldSpawn.getZ() - spawnZ));
+        return new Location(world, spawnX, y, spawnZ, yaw, 0.0f);
+    }
+
+    private Integer getSafeSpawnY(World world, int x, int z, int baseY) {
+        if (isPassable(world, x, baseY, z) && isPassable(world, x, baseY + 1, z)) {
+            return baseY;
+        }
+        int margin = 10;
+        if (world.getBlockAt(x, baseY, z).isPassable()) {
+            for (int dy = 1; dy <= margin; dy++) {
+                int y = baseY - dy;
+                if (isPassable(world, x, y, z) && isPassable(world, x, y + 1, z)) {
+                    return y;
+                }
+            }
+        } else {
+            for (int dy = 1; dy <= margin; dy++) {
+                int y = baseY + dy;
+                if (isPassable(world, x, y, z) && isPassable(world, x, y + 1, z)) {
+                    return y;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean isPassable(World world, int x, int y, int z) {
+        return world.getBlockAt(x, y, z).isPassable();
     }
 
     public boolean isInAuthWorld(Location location) {

@@ -6,7 +6,7 @@
 
     <groupId>me.lokspel</groupId>
     <artifactId>spawnauth</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
     <packaging>jar</packaging>
 
     <name>SpawnAuth</name>
@@ -17,7 +17,7 @@
     </properties>
 
     <build>
-        <finalName>SpawnAuth</finalName>
+        <finalName>SpawnAuth-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

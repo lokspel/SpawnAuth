@@ -1,5 +1,14 @@
-SpawnAuth integrates with AuthMe or nLogin to isolate unauthenticated players in a void limbo world. It saves their original location and restores it after login, while a protected auth spawn keeps your main world safe.
+SpawnAuth works with AuthMe or nLogin to keep unauthenticated players away from the main world until they log in. It saves the player's original location before teleporting them to a temporary spawn and restores it after successful authentication.
 
-It fixes common issues found when using AuthMe or nLogin alone. Their built-in spawn/limbo handling can be disabled, as it often causes problems like players getting stuck at spawn, leaving after death instead of respawning, and other edge-case bugs.
+The plugin is designed to replace the built-in spawn/limbo handling of AuthMe and nLogin, which can cause issues such as players getting stuck at spawn, spawning in the wrong place after death, or other authentication-related edge cases. It is recommended to disable those features when using SpawnAuth.
 
-<img width="1920" height="1009" alt="image" src="https://github.com/user-attachments/assets/7f75f7f4-4a21-433c-b048-41357add5134" />
+## Features
+
+- Supports AuthMe and nLogin.
+- Saves and restores the player's original location after login.
+- Two spawn modes:
+  - `vanilla` – teleports players to the configured world for their current dimension and uses the world's `respawnRadius` gamerule to spread players around spawn.
+  - `fixed` – teleports players to a fixed location, usually in a dedicated void world.
+- Supports separate worlds for the Overworld, Nether, and End.
+- Optional fallback to the Overworld if a dimension is not configured.
+- Optional automatic creation of a void world when using `fixed` mode.

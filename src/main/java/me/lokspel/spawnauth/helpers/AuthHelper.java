@@ -6,40 +6,46 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.lang.reflect.Method;
+import java.util.function.Predicate;
 
 public final class AuthHelper {
-    private static final Map<String, Boolean> PLUGIN_ENABLED_CACHE = new ConcurrentHashMap<>();
+    private static Predicate<String> authCheck = name -> false;
 
     private AuthHelper() {
     }
 
+    public static void init(String authPluginName) {
+        switch (authPluginName) {
+            case "nLogin" -> authCheck = name -> nLoginAPI.getApi().isAuthenticated(name);
+            case "OpenLogin" -> initOpenLogin();
+            case "AuthMe" -> authCheck = name -> {
+                Player player = Bukkit.getPlayer(name);
+                return player != null && AuthMeApi.getInstance().isAuthenticated(player);
+            };
+        }
+    }
+
+    private static void initOpenLogin() {
+        try {
+            Plugin olPlugin = Bukkit.getPluginManager().getPlugin("OpeNLogin");
+            assert olPlugin != null;
+            Method getLM = olPlugin.getClass().getMethod("getLoginManagement");
+            Object loginManagement = getLM.invoke(olPlugin);
+            Method isAuth = loginManagement.getClass().getMethod("isAuthenticated", String.class);
+            authCheck = name -> {
+                try {
+                    return (boolean) isAuth.invoke(loginManagement, name);
+                } catch (Exception e) {
+                    return false;
+                }
+            };
+        } catch (Exception e) {
+            LogHelper.LOGGER.warning("Failed to set up OpenLogin auth check: " + e.getMessage());
+        }
+    }
+
     public static boolean isAuthenticated(Player player) {
-        if (player == null) {
-            return false;
-        }
-
-        if (isPluginEnabled()) {
-            return isAuthenticatedWithNLogin(player);
-        }
-
-        return isAuthenticatedWithAuthMe(player);
-    }
-
-    private static boolean isAuthenticatedWithNLogin(Player player) {
-        return nLoginAPI.getApi().isAuthenticated(player.getName());
-    }
-
-    private static boolean isAuthenticatedWithAuthMe(Player player) {
-        AuthMeApi authMeApi = AuthMeApi.getInstance();
-        return authMeApi != null && authMeApi.isAuthenticated(player);
-    }
-
-    private static boolean isPluginEnabled() {
-        return PLUGIN_ENABLED_CACHE.computeIfAbsent("nLogin", name -> {
-            Plugin plugin = Bukkit.getPluginManager().getPlugin(name);
-            return plugin != null && plugin.isEnabled();
-        });
+        return player != null && authCheck.test(player.getName());
     }
 }

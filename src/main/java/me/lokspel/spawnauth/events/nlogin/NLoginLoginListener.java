@@ -24,12 +24,12 @@ public class NLoginLoginListener implements Listener {
 
     @EventHandler
     private void onPlayerLogin(LoginEvent event) {
-        FoliaAPI.runTaskForEntity(event.getPlayer(), () -> handleAuthenticatedPlayer(event.getPlayer()));
+        handleAuthenticatedPlayer(event.getPlayer());
     }
 
     @EventHandler
     private void onPlayerRegister(RegisterEvent event) {
-        FoliaAPI.runTaskForEntity(event.getPlayer(), () -> handleAuthenticatedPlayer(event.getPlayer()));
+        handleAuthenticatedPlayer(event.getPlayer());
     }
 
     private void handleAuthenticatedPlayer(Player player) {

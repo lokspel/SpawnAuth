@@ -82,7 +82,11 @@ public class GameHelper {
             return;
         }
 
-        FoliaAPI.teleportPlayer(player, location, FoliaAPI.isFolia());
+        if (!FoliaAPI.isFolia() && Bukkit.isPrimaryThread()) {
+            player.teleport(location);
+        } else {
+            player.teleportAsync(location);
+        }
     }
 
     public boolean isAuthenticated(Player player) {

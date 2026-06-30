@@ -21,26 +21,17 @@ public class LimboWorldManager {
     }
 
     public World createLimboWorld() {
-        World overworld = requireWorld(config.getOverworldName(), World.Environment.NORMAL);
+        World overworld = requireWorld(config.getOverworldName());
         if (overworld == null) return null;
 
-        if (config.getNetherName() != null) {
-            requireWorld(config.getNetherName(), World.Environment.NETHER);
-        }
-        if (config.getEndName() != null) {
-            requireWorld(config.getEndName(), World.Environment.THE_END);
-        }
-
         if (!"vanilla".equals(config.getSpawnMode())) {
-            World limbo = requireWorld(config.getGenerationWorldName(), World.Environment.NORMAL);
-            if (limbo == null) return null;
-            return limbo;
+            return requireWorld(config.getGenerationWorldName());
         }
 
         return overworld;
     }
 
-    private World requireWorld(String worldName, World.Environment environment) {
+    private World requireWorld(String worldName) {
         if (worldName == null) return null;
         World world = plugin.getServer().getWorld(worldName);
         if (world != null) {
@@ -50,12 +41,6 @@ public class LimboWorldManager {
         if (!config.isGenerateWorld()) {
             LogHelper.LOGGER.warning(() -> "Limbo world '" + worldName + "' was not found. "
                     + "Create it manually or set limbo.create to true.");
-            return null;
-        }
-
-        if (environment != World.Environment.NORMAL) {
-            LogHelper.LOGGER.warning(() -> "Auto-creation is only supported for the overworld. "
-                    + "Create '" + worldName + "' manually.");
             return null;
         }
 
@@ -85,10 +70,8 @@ public class LimboWorldManager {
 
         Location spawnLocation = new Location(world, spawnX + 0.5, spawnY, spawnZ + 0.5, spawnYaw, spawnPitch);
 
-        if (!FoliaAPI.isFolia()) {
-            world.setSpawnLocation(spawnLocation);
-            LimboWorldConfigurator.configure(world);
-        }
+        world.setSpawnLocation(spawnLocation);
+        LimboWorldConfigurator.configure(world);
 
         gameHelper.setAuthWorld(world);
         gameHelper.setAuthSpawnLocation(spawnLocation);

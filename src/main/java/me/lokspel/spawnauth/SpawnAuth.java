@@ -67,7 +67,7 @@ public final class SpawnAuth extends JavaPlugin {
         }
 
         if ("AuthMe".equals(authPluginName)) {
-            getServer().getPluginManager().registerEvents(new AuthMeLoginListener(this, gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new AuthMeLoginListener(gameHelper, saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeUnregisterListener(saveHelper), this);
         }

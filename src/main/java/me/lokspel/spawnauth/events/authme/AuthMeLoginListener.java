@@ -8,15 +8,11 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.java.JavaPlugin;
-
 public class AuthMeLoginListener implements Listener {
     private final SaveHelper saveHelper;
     private final GameHelper gameHelper;
-    private final JavaPlugin plugin;
 
-    public AuthMeLoginListener(JavaPlugin plugin, GameHelper gameHelper, SaveHelper saveHelper) {
-        this.plugin = plugin;
+    public AuthMeLoginListener(GameHelper gameHelper, SaveHelper saveHelper) {
         this.saveHelper = saveHelper;
         this.gameHelper = gameHelper;
     }
@@ -35,7 +31,7 @@ public class AuthMeLoginListener implements Listener {
         gameHelper.updateLimboWeather(player);
 
         FoliaAPI.runTaskForEntity(player, () -> {
-            if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
+            if (!player.isOnline() || !gameHelper.isAuthenticated(player) || gameHelper.isNotAtAuthSpawn(player.getLocation())) {
                 return;
             }
 

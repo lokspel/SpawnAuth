@@ -44,7 +44,7 @@ public class NLoginLoginListener implements Listener {
         gameHelper.updateLimboWeather(player);
 
         FoliaAPI.runTaskForEntity(player, () -> {
-            if (!player.isOnline() || !gameHelper.isAuthenticated(player) || !gameHelper.isAtAuthSpawn(player.getLocation())) {
+            if (!player.isOnline() || !gameHelper.isAuthenticated(player) || gameHelper.isNotAtAuthSpawn(player.getLocation())) {
                 return;
             }
 

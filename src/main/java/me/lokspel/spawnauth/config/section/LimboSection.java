@@ -20,18 +20,6 @@ public class LimboSection {
         return config.getString(key(".worlds.overworld"), "world");
     }
 
-    public String getNetherName() {
-        return config.getString(key(".worlds.nether"));
-    }
-
-    public String getEndName() {
-        return config.getString(key(".worlds.end"));
-    }
-
-    public boolean isFallbackEnabled() {
-        return config.getBoolean(key(".worlds.fallback"), true);
-    }
-
     public String getGenerationWorldName() {
         return config.getString(key(".generation.world"), "limbo");
     }

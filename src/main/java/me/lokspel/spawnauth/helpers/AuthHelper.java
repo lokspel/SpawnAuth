@@ -20,7 +20,7 @@ public final class AuthHelper {
             return false;
         }
 
-        if (isPluginEnabled("nLogin")) {
+        if (isPluginEnabled()) {
             return isAuthenticatedWithNLogin(player);
         }
 
@@ -28,8 +28,7 @@ public final class AuthHelper {
     }
 
     private static boolean isAuthenticatedWithNLogin(Player player) {
-        nLoginAPI nLoginApi = nLoginAPI.getApi();
-        return nLoginApi != null && nLoginApi.isAuthenticated(player.getName());
+        return nLoginAPI.getApi().isAuthenticated(player.getName());
     }
 
     private static boolean isAuthenticatedWithAuthMe(Player player) {
@@ -37,8 +36,8 @@ public final class AuthHelper {
         return authMeApi != null && authMeApi.isAuthenticated(player);
     }
 
-    private static boolean isPluginEnabled(String pluginName) {
-        return PLUGIN_ENABLED_CACHE.computeIfAbsent(pluginName, name -> {
+    private static boolean isPluginEnabled() {
+        return PLUGIN_ENABLED_CACHE.computeIfAbsent("nLogin", name -> {
             Plugin plugin = Bukkit.getPluginManager().getPlugin(name);
             return plugin != null && plugin.isEnabled();
         });

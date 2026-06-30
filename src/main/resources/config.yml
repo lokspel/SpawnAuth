@@ -1,37 +1,28 @@
-# Which world to use per dimension when spawn-mode is "vanilla".
+# World used when spawn-mode is "vanilla".
 # Players are scattered around the world's natural spawn point using the
-# respawnRadius gamerule. Set /gamerule respawnRadius <value> in each world
+# respawn_radius gamerule. Set /gamerule respawn_radius <value>
 # to control the scatter distance (0 = no scatter, exact spawn).
-# If a dimension entry is removed (or left empty), the fallback option
-# controls whether the player falls back to the overworld world or is
-# not teleported at all.
+# All dimensions (overworld, nether, end) use this single world.
+# If you need per-dimension worlds, this is no longer supported.
 worlds:
   overworld: world
-  nether: world_nether
-  end: world_the_end
-  # When enabled, players from a missing/unconfigured dimension are sent
-  # to the overworld world instead. When disabled, they are not teleported.
-  fallback: true
 
 # How to choose the spawn point for unauthenticated players:
-#   vanilla  - place the player in the corresponding dimension's world
-#              (specified under "worlds") and scatter them around its
-#              spawn using the respawnRadius gamerule.
+#   vanilla  - place the player in the configured world and scatter
+#              them around its spawn using the respawn_radius gamerule.
 #   fixed    - place the player in the void world (generation.world)
 #              at the exact coordinates specified under generation.fixed-spawn.
 spawn-mode: vanilla
 
 # Settings for the auto-generated limbo void world. Only used when
-# spawn-mode is "fixed". For "vanilla" mode you only need the "worlds" block
-# and the respawnRadius gamerule in those worlds.
+# spawn-mode is "fixed".
 generation:
   # Name of the limbo void world (used when spawn-mode: fixed).
   world: limbo
 
   # If true, automatically creates the void world when it doesn't exist.
   # The void world is always created as an overworld-type world with a small
-  # platform at the fixed-spawn coordinates. Nether/end worlds cannot be
-  # auto-created; they must exist on the server already.
+  # platform at the fixed-spawn coordinates.
   create: false
 
   # Fixed spawn coordinates (used when spawn-mode: fixed).

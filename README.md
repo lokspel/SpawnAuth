@@ -7,8 +7,7 @@ The plugin is designed to replace the built-in spawn/limbo handling of AuthMe an
 - Supports AuthMe and nLogin.
 - Saves and restores the player's original location after login.
 - Two spawn modes:
-  - `vanilla` – teleports players to the configured world for their current dimension and uses the world's `respawnRadius` gamerule to spread players around spawn.
+  - `vanilla` – teleports players to the configured world and scatters them around its spawn using the `respawn_radius` gamerule.
   - `fixed` – teleports players to a fixed location, usually in a dedicated void world.
-- Supports separate worlds for the Overworld, Nether, and End.
-- Optional fallback to the Overworld if a dimension is not configured.
+- All dimensions (overworld, nether, end) use the same configured world — no per-dimension config.
 - Optional automatic creation of a void world when using `fixed` mode.

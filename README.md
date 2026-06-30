@@ -4,7 +4,7 @@ The plugin is designed to replace the built-in spawn/limbo handling of these plu
 
 ## Features
 
-- Supports AuthMe, nLogin, and OpenLogin.
+- Supports AuthMe, nLogin, and OpeNLogin.
 - Saves and restores the player's original location after login.
 - Two spawn modes:
   - `vanilla` – teleports players to the configured world and scatters them around its spawn using the `respawn_radius` gamerule.

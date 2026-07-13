@@ -7,15 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.java.JavaPlugin;
-
 public class OnPlayerJoinEvent implements Listener {
-    private final JavaPlugin plugin;
     private final GameHelper gameHelper;
     private final SaveHelper saveHelper;
 
-    public OnPlayerJoinEvent(JavaPlugin plugin, GameHelper gameHelper, SaveHelper saveHelper) {
-        this.plugin = plugin;
+    public OnPlayerJoinEvent(GameHelper gameHelper, SaveHelper saveHelper) {
         this.saveHelper = saveHelper;
         this.gameHelper = gameHelper;
     }
@@ -25,6 +21,7 @@ public class OnPlayerJoinEvent implements Listener {
         Player player = event.getPlayer();
 
         if (player.isDead()) {
+            saveHelper.removeLocation(player.getName());
             player.spigot().respawn();
             FoliaAPI.runTaskForEntity(player, () -> handlePostJoin(player));
             return;

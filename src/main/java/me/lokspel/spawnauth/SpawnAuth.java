@@ -9,6 +9,9 @@ import me.lokspel.spawnauth.events.authme.AuthMeLogoutListener;
 import me.lokspel.spawnauth.events.authme.AuthMeUnregisterListener;
 import me.lokspel.spawnauth.events.nlogin.NLoginLoginListener;
 import me.lokspel.spawnauth.events.nlogin.NLoginUnregisterListener;
+import me.lokspel.spawnauth.events.loginsecurity.LoginSecurityLoginListener;
+import me.lokspel.spawnauth.events.loginsecurity.LoginSecurityLogoutListener;
+import me.lokspel.spawnauth.events.loginsecurity.LoginSecurityUnregisterListener;
 import me.lokspel.spawnauth.events.openlogin.OpenLoginAuthenticateListener;
 import me.lokspel.spawnauth.helpers.AuthHelper;
 import me.lokspel.spawnauth.helpers.GameHelper;
@@ -39,7 +42,7 @@ public final class SpawnAuth extends JavaPlugin {
             getServer().shutdown();
         }
 
-        FoliaAPI.init(this);
+        FoliaAPI.init();
 
         ConfigManager configManager = new ConfigManager(this);
         configManager.loadConfig();
@@ -60,7 +63,7 @@ public final class SpawnAuth extends JavaPlugin {
         }
 
         // Register events
-        getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this, gameHelper, saveHelper), this);
+        getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(gameHelper, saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerRespawnEvent(gameHelper, saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerQuitEvent(gameHelper, saveHelper), this);
         AuthHelper.init(authPluginName);
@@ -78,6 +81,12 @@ public final class SpawnAuth extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new AuthMeLoginListener(gameHelper, saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeUnregisterListener(saveHelper), this);
+        }
+
+        if ("LoginSecurity".equals(authPluginName)) {
+            getServer().getPluginManager().registerEvents(new LoginSecurityLoginListener(gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new LoginSecurityLogoutListener(saveHelper), this);
+            getServer().getPluginManager().registerEvents(new LoginSecurityUnregisterListener(saveHelper), this);
         }
     }
 
@@ -103,12 +112,17 @@ public final class SpawnAuth extends JavaPlugin {
             return "OpenLogin";
         }
 
+        if (isPluginEnabled("LoginSecurity")) {
+            LogHelper.LOGGER.info("Using LoginSecurity as the authentication provider.");
+            return "LoginSecurity";
+        }
+
         if (isPluginEnabled("AuthMe")) {
             LogHelper.LOGGER.info("Using AuthMe as the authentication provider.");
             return "AuthMe";
         }
 
-        LogHelper.LOGGER.severe("No supported authentication plugin found. Install nLogin, OpenLogin, or AuthMe.");
+        LogHelper.LOGGER.severe("No supported authentication plugin found. Install nLogin, OpenLogin, LoginSecurity, or AuthMe.");
         return null;
     }
 

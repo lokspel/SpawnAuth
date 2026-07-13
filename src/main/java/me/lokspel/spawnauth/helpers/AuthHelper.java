@@ -1,5 +1,6 @@
 package me.lokspel.spawnauth.helpers;
 
+import com.lenis0012.bukkit.loginsecurity.LoginSecurity;
 import com.nickuc.login.api.nLoginAPI;
 import fr.xephi.authme.api.v3.AuthMeApi;
 import org.bukkit.Bukkit;
@@ -19,6 +20,12 @@ public final class AuthHelper {
         switch (authPluginName) {
             case "nLogin" -> authCheck = name -> nLoginAPI.getApi().isAuthenticated(name);
             case "OpenLogin" -> initOpenLogin();
+            case "LoginSecurity" -> authCheck = name -> {
+                Player player = Bukkit.getPlayer(name);
+                if (player == null) return false;
+                var session = LoginSecurity.getSessionManager().getPlayerSession(player);
+                return session != null && session.isLoggedIn();
+            };
             case "AuthMe" -> authCheck = name -> {
                 Player player = Bukkit.getPlayer(name);
                 return player != null && AuthMeApi.getInstance().isAuthenticated(player);

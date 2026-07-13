@@ -48,8 +48,7 @@ public class FoliaAPI {
         cacheMethods();
     }
 
-    public static void init(JavaPlugin javaPlugin) {
-        plugin = javaPlugin;
+    public static void init() {
     }
 
     private static void cacheClasses() {

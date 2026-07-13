@@ -1,10 +1,10 @@
-SpawnAuth works with AuthMe, nLogin, or OpenLogin to keep unauthenticated players away from the main world until they log in. It saves the player's original location before teleporting them to a temporary spawn and restores it after successful authentication.
+SpawnAuth works with AuthMe, nLogin, OpenLogin, or LoginSecurity to keep unauthenticated players away from the main world until they log in. It saves the player's original location before teleporting them to a temporary spawn and restores it after successful authentication.
 
 The plugin is designed to replace the built-in spawn/limbo handling of these plugins, which can cause issues such as players getting stuck at spawn, spawning in the wrong place after death, or other authentication-related edge cases. It is recommended to disable those features when using SpawnAuth.
 
 ## Features
 
-- Supports AuthMe, nLogin, and OpeNLogin.
+- Supports AuthMe, nLogin, OpeNLogin, and LoginSecurity.
 - Saves and restores the player's original location after login.
 - Two spawn modes:
   - `vanilla` – teleports players to the configured world and scatters them around its spawn using the `respawn_radius` gamerule.

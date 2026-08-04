@@ -56,7 +56,7 @@ public final class SpawnAuth extends JavaPlugin {
         }
 
         // bStats
-        int pluginId = 33135;
+        int pluginId = 33136;
         Metrics metrics = new Metrics(this, pluginId);
         metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
 

@@ -6,7 +6,7 @@
 
     <groupId>me.lokspel</groupId>
     <artifactId>spawnauth</artifactId>
-    <version>1.0.7</version>
+    <version>1.0.8</version>
     <packaging>jar</packaging>
 
     <name>SpawnAuth</name>
@@ -32,6 +32,28 @@
                     <release>${java.version}</release>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>org.bstats</pattern>
+                                    <shadedPattern>me.lokspel.spawnauth.thirdparty</shadedPattern>
+                                </relocation>
+                            </relocations>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
         <resources>
             <resource>
@@ -53,6 +75,10 @@
       <repository>
           <id>nickuc-repo</id>
           <url>https://repo.nickuc.com/maven-releases/</url>
+      </repository>
+      <repository>
+          <id>bstats-repo</id>
+          <url>https://repo.bstats.org/maven/</url>
       </repository>
   </repositories>
 
@@ -87,6 +113,12 @@
           <version>3.3.1</version>
           <scope>system</scope>
           <systemPath>${project.basedir}/libs/LoginSecurity-Spigot-3.3.1.jar</systemPath>
+      </dependency>
+      <dependency>
+          <groupId>org.bstats</groupId>
+          <artifactId>bstats-bukkit</artifactId>
+          <version>3.2.1</version>
+          <scope>compile</scope>
       </dependency>
   </dependencies>
 </project>

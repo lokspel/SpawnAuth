@@ -18,6 +18,8 @@ import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.LogHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
 import me.lokspel.spawnauth.utils.FoliaAPI;
+import org.bstats.bukkit.Metrics;
+import org.bstats.charts.SimplePie;
 import me.lokspel.spawnauth.world.LimboWorldManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -47,10 +49,16 @@ public final class SpawnAuth extends JavaPlugin {
         ConfigManager configManager = new ConfigManager(this);
         configManager.loadConfig();
 
-        String authPluginName = getAuthPluginName();
-        if (authPluginName == null) {
+        String provider = getProvider();
+        if (provider == null) {
+            getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        // bStats
+        int pluginId = 33135;
+        Metrics metrics = new Metrics(this, pluginId);
+        metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
 
         saveHelper = new SaveHelper(getDataFolder());
         gameHelper = new GameHelper(configManager.getLimbo());
@@ -66,24 +74,24 @@ public final class SpawnAuth extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(gameHelper, saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerRespawnEvent(gameHelper, saveHelper), this);
         getServer().getPluginManager().registerEvents(new OnPlayerQuitEvent(gameHelper, saveHelper), this);
-        AuthHelper.init(authPluginName);
+        AuthHelper.init(provider);
 
-        if ("nLogin".equals(authPluginName)) {
+        if ("nLogin".equals(provider)) {
             getServer().getPluginManager().registerEvents(new NLoginLoginListener(this, gameHelper, saveHelper), this);
             getServer().getPluginManager().registerEvents(new NLoginUnregisterListener(saveHelper), this);
         }
 
-        if ("OpenLogin".equals(authPluginName)) {
+        if ("OpenLogin".equals(provider)) {
             getServer().getPluginManager().registerEvents(new OpenLoginAuthenticateListener(this, gameHelper, saveHelper), this);
         }
 
-        if ("AuthMe".equals(authPluginName)) {
+        if ("AuthMe".equals(provider)) {
             getServer().getPluginManager().registerEvents(new AuthMeLoginListener(gameHelper, saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeUnregisterListener(saveHelper), this);
         }
 
-        if ("LoginSecurity".equals(authPluginName)) {
+        if ("LoginSecurity".equals(provider)) {
             getServer().getPluginManager().registerEvents(new LoginSecurityLoginListener(gameHelper, saveHelper), this);
             getServer().getPluginManager().registerEvents(new LoginSecurityLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new LoginSecurityUnregisterListener(saveHelper), this);
@@ -101,7 +109,7 @@ public final class SpawnAuth extends JavaPlugin {
         return instance;
     }
 
-    private String getAuthPluginName() {
+    private String getProvider() {
         if (isPluginEnabled("nLogin")) {
             LogHelper.LOGGER.info("Using nLogin as the authentication provider.");
             return "nLogin";

@@ -16,8 +16,8 @@ public final class AuthHelper {
     private AuthHelper() {
     }
 
-    public static void init(String authPluginName) {
-        switch (authPluginName) {
+    public static void init(String provider) {
+        switch (provider) {
             case "nLogin" -> authCheck = name -> nLoginAPI.getApi().isAuthenticated(name);
             case "OpenLogin" -> {
                 Plugin olPlugin = Bukkit.getPluginManager().getPlugin("OpeNLogin");

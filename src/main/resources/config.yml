@@ -1,38 +1,39 @@
-# World used when spawn-mode is "vanilla".
-# Players are scattered around the world's natural spawn point using the
-# respawn_radius gamerule. Set /gamerule respawn_radius <value>
-# to control the scatter distance (0 = no scatter, exact spawn).
+# The world the player returns to after authentication.
 # All dimensions (overworld, nether, end) use this single world.
-# If you need per-dimension worlds, this is no longer supported.
 worlds:
   overworld: world
 
-# How to choose the spawn point for unauthenticated players:
-#   vanilla  - place the player in the configured world and scatter
-#              them around its spawn using the respawn_radius gamerule.
-#   fixed    - place the player in the void world (generation.world)
-#              at the exact coordinates specified under generation.fixed-spawn.
-spawn-mode: vanilla
+# Where to move unauthenticated players (waiting spot before auth):
+#   vanilla  - leave the player at the server spawn of the overworld
+#   fixed    - move the player to the fixed spawn coordinates below
+#   disabled - do not move the player at all
+#
+# After authentication the player is always returned to the
+# location they had before being moved to the auth spawn.
+register:
+  spawn-mode: vanilla
+login:
+  spawn-mode: vanilla
 
-# Settings for the auto-generated limbo void world. Only used when
-# spawn-mode is "fixed".
-generation:
-  # Name of the limbo void world (used when spawn-mode: fixed).
+# Where to send the player in "fixed" mode.
+fixed:
+  # The world to use. Can be an existing world or one created by this plugin.
   world: limbo
 
-  # If true, automatically creates the void world when it doesn't exist.
-  # The void world is always created as an overworld-type world with a small
-  # platform at the fixed-spawn coordinates.
+  # If true, the void world is created automatically when it doesn't exist
+  # (overworld type, with a small platform under the spawn point).
+  # If false and the world doesn't exist, the fixed mode is skipped.
   create: false
 
-  # Fixed spawn coordinates (used when spawn-mode: fixed).
-  fixed-spawn:
+  # Exact spawn coordinates. Always used in "fixed" mode,
+  # regardless of whether the world is created or already exists.
+  spawn:
     x: 7
     y: 70
     z: 7
     yaw: 0
     pitch: 0
 
-  # Radius of the stone/grass platform around the fixed spawn in the
-  # auto-generated void world. Ignored when using existing worlds.
+  # Radius of the stone/grass platform around the spawn in the
+  # auto-created void world. Ignored when using an existing world.
   platform-radius: 1

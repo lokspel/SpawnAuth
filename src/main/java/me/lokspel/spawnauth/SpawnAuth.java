@@ -1,6 +1,6 @@
 package me.lokspel.spawnauth;
 
-import me.lokspel.spawnauth.config.ConfigManager;
+import me.lokspel.spawnauth.config.MainConfig;
 import me.lokspel.spawnauth.events.OnPlayerJoinEvent;
 import me.lokspel.spawnauth.events.OnPlayerQuitEvent;
 import me.lokspel.spawnauth.events.OnPlayerRespawnEvent;
@@ -17,7 +17,7 @@ import me.lokspel.spawnauth.helpers.AuthHelper;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.LogHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import me.lokspel.spawnauth.utils.FoliaAPI;
+import com.tcoded.folialib.FoliaLib;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
 import me.lokspel.spawnauth.world.LimboWorldManager;
@@ -29,14 +29,13 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class SpawnAuth extends JavaPlugin {
-    private static SpawnAuth instance;
     private final Map<String, Boolean> pluginEnabledCache = new ConcurrentHashMap<>();
+    private FoliaLib foliaLib;
     private SaveHelper saveHelper;
     private GameHelper gameHelper;
 
     @Override
     public void onEnable() {
-        instance = this;
 
         // Setup dataFolder
         if (!getDataFolder().mkdirs() && !getDataFolder().exists()) {
@@ -44,10 +43,9 @@ public final class SpawnAuth extends JavaPlugin {
             getServer().shutdown();
         }
 
-        FoliaAPI.init();
+        foliaLib = new FoliaLib(this);
 
-        ConfigManager configManager = new ConfigManager(this);
-        configManager.loadConfig();
+        MainConfig config = new MainConfig(this);
 
         String provider = getProvider();
         if (provider == null) {
@@ -61,38 +59,43 @@ public final class SpawnAuth extends JavaPlugin {
         metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
 
         saveHelper = new SaveHelper(getDataFolder());
-        gameHelper = new GameHelper(configManager.getLimbo());
+        gameHelper = new GameHelper(this, config.limbo());
 
         // Setup data base
         saveHelper.setupDataBase();
 
-        if (new LimboWorldManager(this, gameHelper, configManager.getLimbo()).createLimboWorld() == null) {
-            return;
+        String loginMode = config.limbo().getLoginSpawnMode();
+        String registerMode = config.limbo().getRegisterSpawnMode();
+
+        if (config.limbo().usesFixedSpawn()) {
+            if (new LimboWorldManager(this, gameHelper, config.limbo()).createLimboWorld() == null) {
+                return;
+            }
         }
 
         // Register events
-        getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(gameHelper, saveHelper), this);
-        getServer().getPluginManager().registerEvents(new OnPlayerRespawnEvent(gameHelper, saveHelper), this);
+        getServer().getPluginManager().registerEvents(new OnPlayerJoinEvent(this, gameHelper, saveHelper, loginMode, registerMode), this);
+        getServer().getPluginManager().registerEvents(new OnPlayerRespawnEvent(gameHelper, saveHelper, loginMode, registerMode), this);
         getServer().getPluginManager().registerEvents(new OnPlayerQuitEvent(gameHelper, saveHelper), this);
         AuthHelper.init(provider);
 
         if ("nLogin".equals(provider)) {
-            getServer().getPluginManager().registerEvents(new NLoginLoginListener(this, gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new NLoginLoginListener(this, gameHelper, saveHelper, loginMode, registerMode), this);
             getServer().getPluginManager().registerEvents(new NLoginUnregisterListener(saveHelper), this);
         }
 
         if ("OpenLogin".equals(provider)) {
-            getServer().getPluginManager().registerEvents(new OpenLoginAuthenticateListener(this, gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new OpenLoginAuthenticateListener(this, gameHelper, saveHelper, loginMode, registerMode), this);
         }
 
         if ("AuthMe".equals(provider)) {
-            getServer().getPluginManager().registerEvents(new AuthMeLoginListener(gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new AuthMeLoginListener(this, gameHelper, saveHelper, loginMode, registerMode), this);
             getServer().getPluginManager().registerEvents(new AuthMeLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new AuthMeUnregisterListener(saveHelper), this);
         }
 
         if ("LoginSecurity".equals(provider)) {
-            getServer().getPluginManager().registerEvents(new LoginSecurityLoginListener(gameHelper, saveHelper), this);
+            getServer().getPluginManager().registerEvents(new LoginSecurityLoginListener(this, gameHelper, saveHelper, loginMode, registerMode), this);
             getServer().getPluginManager().registerEvents(new LoginSecurityLogoutListener(saveHelper), this);
             getServer().getPluginManager().registerEvents(new LoginSecurityUnregisterListener(saveHelper), this);
         }
@@ -100,13 +103,17 @@ public final class SpawnAuth extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (foliaLib != null) {
+            foliaLib.getScheduler().cancelAllTasks();
+        }
+
         if (saveHelper != null && gameHelper != null) {
             saveHelper.handleDisable(gameHelper);
         }
     }
 
-    public static SpawnAuth getInstance() {
-        return instance;
+    public FoliaLib getFoliaLib() {
+        return foliaLib;
     }
 
     private String getProvider() {

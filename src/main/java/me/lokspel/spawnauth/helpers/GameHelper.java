@@ -1,30 +1,28 @@
 package me.lokspel.spawnauth.helpers;
 
+import me.lokspel.spawnauth.SpawnAuth;
 import me.lokspel.spawnauth.config.section.LimboSection;
-import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GameHelper {
+    private final SpawnAuth plugin;
     private final LimboSection config;
     private Location authSpawnLocation;
 
-    public GameHelper(LimboSection config) {
+    public GameHelper(SpawnAuth plugin, LimboSection config) {
+        this.plugin = plugin;
         this.config = config;
     }
 
-    public World getAuthWorld() {
-        World world = Bukkit.getWorld(config.getOverworldName());
-        if (world == null) {
-            authSpawnLocation = null;
+    public Location getAuthSpawnLocation(String mode) {
+        if ("disabled".equalsIgnoreCase(mode)) {
+            return null;
         }
-        return world;
-    }
 
-    public Location getAuthSpawnLocation() {
-        if (!"vanilla".equals(config.getSpawnMode())) {
+        if ("fixed".equalsIgnoreCase(mode)) {
             if (authSpawnLocation == null) {
                 World world = Bukkit.getWorld(config.getGenerationWorldName());
                 if (world == null) return null;
@@ -33,9 +31,8 @@ public class GameHelper {
             return authSpawnLocation.clone();
         }
 
-        World world = getAuthWorld();
+        World world = Bukkit.getWorld(config.getOverworldName());
         if (world == null) return null;
-
         return getServerSpawnLocation(world);
     }
 
@@ -62,9 +59,9 @@ public class GameHelper {
         return location.getWorld().getName().equals(config.getOverworldName());
     }
 
-    public boolean isNotAtAuthSpawn(Location location) {
+    public boolean isNotAtAuthSpawn(Location location, String mode) {
         if (location == null || location.getWorld() == null) return true;
-        Location authSpawn = getAuthSpawnLocation();
+        Location authSpawn = getAuthSpawnLocation(mode);
         if (authSpawn == null || authSpawn.getWorld() == null) return true;
         if (!location.getWorld().equals(authSpawn.getWorld())) return true;
         return location.distanceSquared(authSpawn) > 4.0;
@@ -82,7 +79,7 @@ public class GameHelper {
             return;
         }
 
-        if (!FoliaAPI.isFolia() && Bukkit.isPrimaryThread()) {
+        if (!plugin.getFoliaLib().isFolia() && Bukkit.isPrimaryThread()) {
             player.teleport(location);
         } else {
             player.teleportAsync(location);
@@ -91,6 +88,22 @@ public class GameHelper {
 
     public boolean isAuthenticated(Player player) {
         return AuthHelper.isAuthenticated(player);
+    }
+
+    public boolean shouldTeleport(String mode) {
+        return !"disabled".equalsIgnoreCase(mode);
+    }
+
+    public void teleportAuthenticated(Player player, SaveHelper saveHelper, String mode) {
+        if (!shouldTeleport(mode)) {
+            return;
+        }
+
+        String name = player.getName();
+        Location location = saveHelper.takeLocation(name);
+        if (location != null) {
+            teleport(player, location);
+        }
     }
 
     public void updateLimboCollision(Player player) {
@@ -141,12 +154,6 @@ public class GameHelper {
         }
 
         player.resetPlayerWeather();
-    }
-
-    public void setAuthWorld(World world) {
-        this.authSpawnLocation = world != null && !"vanilla".equals(config.getSpawnMode())
-                ? new Location(world, config.getFixedSpawnX() + 0.5, config.getFixedSpawnY(), config.getFixedSpawnZ() + 0.5, config.getFixedSpawnYaw(), config.getFixedSpawnPitch())
-                : null;
     }
 
     public void setAuthSpawnLocation(Location authSpawnLocation) {

@@ -1,19 +1,27 @@
 package me.lokspel.spawnauth.events;
 
+import me.lokspel.spawnauth.SpawnAuth;
+import me.lokspel.spawnauth.helpers.AuthHelper;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import me.lokspel.spawnauth.utils.FoliaAPI;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 public class OnPlayerJoinEvent implements Listener {
+    private final SpawnAuth plugin;
     private final GameHelper gameHelper;
     private final SaveHelper saveHelper;
+    private final String loginMode;
+    private final String registerMode;
 
-    public OnPlayerJoinEvent(GameHelper gameHelper, SaveHelper saveHelper) {
+    public OnPlayerJoinEvent(SpawnAuth plugin, GameHelper gameHelper, SaveHelper saveHelper, String loginMode, String registerMode) {
+        this.plugin = plugin;
         this.saveHelper = saveHelper;
         this.gameHelper = gameHelper;
+        this.loginMode = loginMode;
+        this.registerMode = registerMode;
     }
 
     @EventHandler
@@ -23,7 +31,7 @@ public class OnPlayerJoinEvent implements Listener {
         if (player.isDead()) {
             saveHelper.removeLocation(player.getName());
             player.spigot().respawn();
-            FoliaAPI.runTaskForEntity(player, () -> handlePostJoin(player));
+            plugin.getFoliaLib().getScheduler().runAtEntity(player, unused -> handlePostJoin(player));
             return;
         }
 
@@ -51,15 +59,25 @@ public class OnPlayerJoinEvent implements Listener {
         }
 
         if (pendingLocation != null) {
-            gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
+            Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
+            if (authSpawn != null) {
+                gameHelper.teleport(player, authSpawn);
+            }
             gameHelper.updateLimboCollision(player);
             gameHelper.updateLimboWeather(player);
             return;
         }
 
         saveHelper.saveLocation(player.getName(), player.getLocation());
-        gameHelper.teleport(player, gameHelper.getAuthSpawnLocation());
+        Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
+        if (authSpawn != null) {
+            gameHelper.teleport(player, authSpawn);
+        }
         gameHelper.updateLimboCollision(player);
         gameHelper.updateLimboWeather(player);
+    }
+
+    private String modeFor(Player player) {
+        return AuthHelper.isRegistered(player) ? loginMode : registerMode;
     }
 }

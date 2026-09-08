@@ -3,7 +3,6 @@ package me.lokspel.spawnauth.world;
 import me.lokspel.spawnauth.SpawnAuth;
 import me.lokspel.spawnauth.config.section.LimboSection;
 import me.lokspel.spawnauth.helpers.GameHelper;
-import me.lokspel.spawnauth.utils.FoliaAPI;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.WorldCreator;
@@ -21,14 +20,8 @@ public class LimboWorldManager {
     }
 
     public World createLimboWorld() {
-        World overworld = requireWorld(config.getOverworldName());
-        if (overworld == null) return null;
-
-        if (!"vanilla".equals(config.getSpawnMode())) {
-            return requireWorld(config.getGenerationWorldName());
-        }
-
-        return overworld;
+        requireWorld(config.getOverworldName());
+        return requireWorld(config.getGenerationWorldName());
     }
 
     private World requireWorld(String worldName) {
@@ -44,7 +37,7 @@ public class LimboWorldManager {
             return null;
         }
 
-        if (FoliaAPI.isFolia()) {
+        if (plugin.getFoliaLib().isFolia()) {
             LogHelper.LOGGER.severe("Automatic limbo world creation is not supported on Folia.");
             LogHelper.LOGGER.severe(() -> "Create '" + worldName + "' manually.");
             return null;
@@ -73,7 +66,6 @@ public class LimboWorldManager {
         world.setSpawnLocation(spawnLocation);
         LimboWorldConfigurator.configure(world);
 
-        gameHelper.setAuthWorld(world);
         gameHelper.setAuthSpawnLocation(spawnLocation);
         return world;
     }

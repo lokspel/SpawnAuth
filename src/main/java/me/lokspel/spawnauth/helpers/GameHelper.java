@@ -40,18 +40,13 @@ public class GameHelper {
         Location spawn = world.getSpawnLocation();
         int radius = world.getGameRuleValue(GameRules.RESPAWN_RADIUS);
 
-        if (radius <= 0) {
-            return spawn;
-        }
-
         ThreadLocalRandom random = ThreadLocalRandom.current();
+        int x = spawn.getBlockX() + random.nextInt(-radius, radius + 1);
+        int z = spawn.getBlockZ() + random.nextInt(-radius, radius + 1);
 
-        return new Location(
-                world,
-                spawn.getBlockX() + random.nextInt(-radius, radius + 1) + 0.5,
-                spawn.getY(),
-                spawn.getBlockZ() + random.nextInt(-radius, radius + 1) + 0.5
-        );
+        int y = world.getHighestBlockYAt(x, z) + 1;
+
+        return new Location(world, x + 0.5, y, z + 0.5);
     }
 
     public boolean isInAuthWorld(Location location) {
@@ -84,6 +79,16 @@ public class GameHelper {
         } else {
             player.teleportAsync(location);
         }
+
+        if (plugin.getConfig().getBoolean("debug", false)) {
+            LogHelper.LOGGER.info(() -> "[DBG] teleport " + player.getName() + " -> "
+                    + location.getWorld().getName() + " "
+                    + trim(location.getX()) + " " + trim(location.getY()) + " " + trim(location.getZ()));
+        }
+    }
+
+    private String trim(double value) {
+        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
     public boolean isAuthenticated(Player player) {

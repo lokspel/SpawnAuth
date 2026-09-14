@@ -1,67 +1,34 @@
 package me.lokspel.spawnauth.helpers;
 
+import me.lokspel.spawnauth.cache.SavedLocationCache;
+import me.lokspel.spawnauth.database.Database;
+import me.lokspel.spawnauth.database.model.SavedLocation;
+import me.lokspel.spawnauth.database.repository.SavedLocationRepository;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import java.io.File;
-import java.sql.*;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collection;
+import java.util.List;
 
 public class SaveHelper {
 
-    //noinspection SqlNoDataSourceInspection
-    private static final String CREATE_TABLE_SQL =
-            "CREATE TABLE IF NOT EXISTS PlayerLocations (" +
-                    "name TEXT PRIMARY KEY," +
-                    "x REAL NOT NULL," +
-                    "y REAL NOT NULL," +
-                    "z REAL NOT NULL," +
-                    "world TEXT NOT NULL" +
-                    ")";
+    private final Database database;
+    private final SavedLocationRepository repository;
+    private final SavedLocationCache cache;
+    private final boolean debug;
 
-    //noinspection SqlNoDataSourceInspection
-    private static final String UPSERT_LOCATION_SQL =
-            "INSERT INTO PlayerLocations (name, x, y, z, world) VALUES (?, ?, ?, ?, ?) " +
-                    "ON CONFLICT(name) DO UPDATE SET " +
-                    "x = excluded.x, " +
-                    "y = excluded.y, " +
-                    "z = excluded.z, " +
-                    "world = excluded.world";
-
-    //noinspection SqlNoDataSourceInspection
-    private static final String DELETE_LOCATION_SQL =
-            "DELETE FROM PlayerLocations WHERE name = ?";
-
-    //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_LOCATION_SQL =
-            "SELECT x, y, z, world FROM PlayerLocations WHERE name = ?";
-
-    //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_ALL_LOCATIONS_SQL =
-            "SELECT name, x, y, z, world FROM PlayerLocations";
-
-    //noinspection SqlNoDataSourceInspection
-    private static final String SELECT_AND_DELETE_LOCATION_SQL =
-            "DELETE FROM PlayerLocations WHERE name = ? RETURNING x, y, z, world";
-
-    private final String dataBaseURL;
-    private final Map<String, Location> locationCache = new ConcurrentHashMap<>();
-
-    public SaveHelper(File dataBaseFolder) {
-        this.dataBaseURL = "jdbc:sqlite:" + dataBaseFolder + File.separator + "SpawnAuth.db";
+    public SaveHelper(Database database, boolean cacheEnabled, boolean debug) {
+        this.database = database;
+        this.repository = database != null ? database.getSavedLocationRepository() : null;
+        this.cache = cacheEnabled ? new SavedLocationCache() : null;
+        this.debug = debug;
     }
 
     public void setupDataBase() {
-        try (Connection connection = getConnection();
-             Statement statement = connection.createStatement()) {
-
-            statement.executeUpdate(CREATE_TABLE_SQL);
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to initialize the SQLite database: " + exception.getMessage());
+        if (repository != null) {
+            repository.init();
         }
     }
 
@@ -70,135 +37,124 @@ public class SaveHelper {
             return;
         }
 
-        locationCache.put(name, location.clone());
+        SavedLocation saved = new SavedLocation(
+                name,
+                location.getWorld().getName(),
+                location.getX(),
+                location.getY(),
+                location.getZ()
+        );
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(UPSERT_LOCATION_SQL)) {
+        if (debug) {
+            LogHelper.LOGGER.info(() -> "[DBG] save " + name + " -> " + format(saved));
+        }
 
-            statement.setString(1, name);
-            statement.setDouble(2, location.getX());
-            statement.setDouble(3, location.getY());
-            statement.setDouble(4, location.getZ());
-            statement.setString(5, location.getWorld().getName());
-
-            statement.executeUpdate();
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to save location for '" + name + "': " + exception.getMessage());
+        if (cache != null) {
+            cache.put(saved);
+        }
+        if (repository != null) {
+            repository.upsert(saved);
         }
     }
 
     public void removeLocation(String name) {
-        locationCache.remove(name);
+        if (debug) {
+            LogHelper.LOGGER.info(() -> "[DBG] remove " + name);
+        }
 
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(DELETE_LOCATION_SQL)) {
-
-            statement.setString(1, name);
-            statement.executeUpdate();
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to remove location for '" + name + "': " + exception.getMessage());
+        if (cache != null) {
+            cache.remove(name);
+        }
+        if (repository != null) {
+            repository.delete(name);
         }
     }
 
     public Location getLocation(String name) {
-        Location cached = locationCache.get(name);
-        if (cached != null) {
-            return cached.clone();
-        }
-
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(SELECT_LOCATION_SQL)) {
-
-            statement.setString(1, name);
-
-            try (ResultSet result = statement.executeQuery()) {
-                if (result.next()) {
-                    Location location = readLocation(result);
-                    if (location != null) {
-                        locationCache.put(name, location.clone());
-                    }
-                    return location;
-                }
+        SavedLocation saved = cache != null ? cache.get(name) : null;
+        if (saved == null && repository != null) {
+            saved = repository.get(name);
+            if (saved != null && cache != null) {
+                cache.put(saved);
             }
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to load location for '" + name + "': " + exception.getMessage());
         }
 
-        return null;
+        if (debug) {
+            SavedLocation result = saved;
+            LogHelper.LOGGER.info(() -> "[DBG] get " + name + " -> " + (result != null ? format(result) : "null"));
+        }
+
+        return toLocation(saved);
     }
 
     public Location takeLocation(String name) {
-        locationCache.remove(name);
-
-        try (Connection connection = getConnection();
-             PreparedStatement statement = connection.prepareStatement(SELECT_AND_DELETE_LOCATION_SQL)) {
-
-            statement.setString(1, name);
-
-            try (ResultSet result = statement.executeQuery()) {
-                return result.next() ? readLocation(result) : null;
-            }
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to load and remove location for '" + name + "': " + exception.getMessage());
+        SavedLocation saved = null;
+        if (cache != null) {
+            saved = cache.remove(name);
         }
 
-        return null;
+        if (repository != null) {
+            if (saved != null) {
+                repository.delete(name);
+            } else {
+                saved = repository.take(name);
+            }
+        }
+
+        if (debug) {
+            SavedLocation result = saved;
+            LogHelper.LOGGER.info(() -> "[DBG] take " + name + " -> " + (result != null ? format(result) : "null"));
+        }
+
+        return toLocation(saved);
     }
 
     public void handleDisable(GameHelper gameHelper) {
-        try (Connection connection = getConnection();
-             PreparedStatement select = connection.prepareStatement(SELECT_ALL_LOCATIONS_SQL);
-             PreparedStatement delete = connection.prepareStatement(DELETE_LOCATION_SQL);
-             ResultSet result = select.executeQuery()) {
+        Collection<SavedLocation> savedLocations = repository != null
+                ? repository.getAll()
+                : (cache != null ? cache.values() : List.of());
 
-            while (result.next()) {
-                try {
-                    Location location = readLocation(result);
-                    String name = result.getString("name");
-                    Player player = Bukkit.getPlayer(name);
+        for (SavedLocation saved : savedLocations) {
+            try {
+                Location location = toLocation(saved);
+                Player player = Bukkit.getPlayer(saved.name());
 
-                    if (location != null && player != null && player.isOnline()) {
-                        gameHelper.teleport(player, location);
-                        delete.setString(1, name);
-                        delete.executeUpdate();
-                    }
-                } catch (Exception exception) {
-                    LogHelper.LOGGER.warning(() ->
-                            "Failed to restore player location: " + exception.getMessage());
+                if (location != null && player != null && player.isOnline()) {
+                    gameHelper.teleport(player, location);
+                    removeLocation(saved.name());
                 }
+            } catch (Exception exception) {
+                LogHelper.LOGGER.warning(() ->
+                        "Failed to restore player location: " + exception.getMessage());
             }
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to process stored locations: " + exception.getMessage());
         }
 
-        locationCache.clear();
+        if (cache != null) {
+            cache.clear();
+        }
+        if (database != null) {
+            database.close();
+        }
     }
 
-    private Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(dataBaseURL);
-    }
+    private Location toLocation(SavedLocation saved) {
+        if (saved == null) {
+            return null;
+        }
 
-    private Location readLocation(ResultSet result) throws SQLException {
-        var world = Bukkit.getWorld(result.getString("world"));
+        World world = Bukkit.getWorld(saved.world());
         if (world == null) {
             return null;
         }
 
-        return new Location(
-                world,
-                result.getDouble("x"),
-                result.getDouble("y"),
-                result.getDouble("z")
-        );
+        return new Location(world, saved.x(), saved.y(), saved.z());
+    }
+
+    private String format(SavedLocation saved) {
+        return saved.world() + " " + trim(saved.x()) + " " + trim(saved.y()) + " " + trim(saved.z());
+    }
+
+    private String trim(double value) {
+        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 }

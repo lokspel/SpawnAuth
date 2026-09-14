@@ -17,6 +17,7 @@ import me.lokspel.spawnauth.helpers.AuthHelper;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.LogHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
+import me.lokspel.spawnauth.database.Database;
 import com.tcoded.folialib.FoliaLib;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
@@ -57,8 +58,19 @@ public final class SpawnAuth extends JavaPlugin {
         int pluginId = 33136;
         Metrics metrics = new Metrics(this, pluginId);
         metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
+        metrics.addCustomChart(new SimplePie("database_type", config.database().getType()::name));
 
-        saveHelper = new SaveHelper(getDataFolder());
+        boolean cacheEnabled = config.database().isCacheEnabled();
+        Database database;
+        try {
+            database = Database.create(config.database(), cacheEnabled);
+        } catch (Exception exception) {
+            LogHelper.LOGGER.severe("Failed to initialize the database: " + exception.getMessage());
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        saveHelper = new SaveHelper(database, cacheEnabled, getConfig().getBoolean("debug", false));
         gameHelper = new GameHelper(this, config.limbo());
 
         // Setup data base

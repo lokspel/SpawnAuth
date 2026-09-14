@@ -37,3 +37,35 @@ fixed:
   # Radius of the stone/grass platform around the spawn in the
   # auto-created void world. Ignored when using an existing world.
   platform-radius: 1
+
+# Where saved player locations are stored before authentication:
+#   sqlite - server-side SQLite database (default)
+#   mysql  - external MySQL database (set the credentials below)
+#   none   - do not store anywhere (requires cache: true)
+database:
+  type: sqlite
+
+  # Prefix used for table names in the database.
+  table-prefix: spawnauth
+
+  # Cache locations in memory on top of the storage backend.
+  # With "type: none" the cache becomes the only storage.
+  cache: true
+
+  mysql:
+    host: localhost
+    port: 3306
+    database: spawnauth
+    user: root
+    password: ""
+
+    # Extra MySQL JDBC properties appended to the connection URL.
+    url-parameters: "useSSL=false&allowPublicKeyRetrieval=true"
+
+  pool:
+    max-pool-size: 10
+    connection-timeout-ms: 30000
+
+# Debug logging for the location save/restore flow.
+# On: writes every save/read/take/teleport coordinate to the console.
+debug: false

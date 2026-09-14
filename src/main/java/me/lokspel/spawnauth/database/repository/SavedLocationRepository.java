@@ -53,14 +53,14 @@ public class SavedLocationRepository {
     }
 
     private void execute(Runnable task) {
-        try {
-            executor.submit(task).get();
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException exception) {
-            LogHelper.LOGGER.severe(() ->
-                    "Unexpected error in database executor: " + exception.getCause());
-        }
+        executor.submit(() -> {
+            try {
+                task.run();
+            } catch (Exception exception) {
+                LogHelper.LOGGER.severe(() ->
+                        "Unexpected error in database executor: " + exception.getMessage());
+            }
+        });
     }
 
     private <T> T query(Callable<T> task) {
@@ -82,13 +82,32 @@ public class SavedLocationRepository {
                 "x DOUBLE NOT NULL," +
                 "y DOUBLE NOT NULL," +
                 "z DOUBLE NOT NULL," +
+                "yaw FLOAT NOT NULL DEFAULT 0," +
+                "pitch FLOAT NOT NULL DEFAULT 0," +
                 "world VARCHAR(128) NOT NULL" +
                 ")";
+
         try (Connection connection = connectionProvider.getConnection();
              Statement statement = connection.createStatement()) {
             statement.executeUpdate(sql);
+
+            // Добавляем колонки в уже существующую таблицу.
+            addColumnIfMissing(connection, "yaw", "FLOAT NOT NULL DEFAULT 0");
+            addColumnIfMissing(connection, "pitch", "FLOAT NOT NULL DEFAULT 0");
+
         } catch (SQLException exception) {
-            LogHelper.LOGGER.severe(() -> "Failed to create the locations table: " + exception.getMessage());
+            LogHelper.LOGGER.severe(() ->
+                    "Failed to create/update the locations table: " + exception.getMessage());
+        }
+    }
+
+    private void addColumnIfMissing(Connection connection, String column, String definition) {
+        try (Statement statement = connection.createStatement()) {
+            statement.executeUpdate(
+                    "ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition
+            );
+        } catch (SQLException ignored) {
+            // Колонка уже существует.
         }
     }
 
@@ -107,10 +126,13 @@ public class SavedLocationRepository {
 
     private void doDelete(String name) {
         String sql = "DELETE FROM " + table + " WHERE name = ?";
+
         try (Connection connection = connectionProvider.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, name);
             statement.executeUpdate();
+
         } catch (SQLException exception) {
             LogHelper.LOGGER.warning(() ->
                     "Failed to delete location for '" + name + "': " + exception.getMessage());
@@ -118,67 +140,88 @@ public class SavedLocationRepository {
     }
 
     private SavedLocation doGet(String name) {
-        String sql = "SELECT name, x, y, z, world FROM " + table + " WHERE name = ?";
+        String sql = "SELECT name, x, y, z, yaw, pitch, world FROM " + table + " WHERE name = ?";
+
         try (Connection connection = connectionProvider.getConnection();
              PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setString(1, name);
+
             try (ResultSet result = statement.executeQuery()) {
                 return result.next() ? readLocation(result) : null;
             }
+
         } catch (SQLException exception) {
             LogHelper.LOGGER.warning(() ->
                     "Failed to load location for '" + name + "': " + exception.getMessage());
         }
+
         return null;
     }
 
     private SavedLocation doTake(String name) {
         try (Connection connection = connectionProvider.getConnection()) {
+
             SavedLocation location = null;
+
             try (PreparedStatement statement = connection.prepareStatement(
-                    "SELECT name, x, y, z, world FROM " + table + " WHERE name = ?")) {
+                    "SELECT name, x, y, z, yaw, pitch, world FROM " + table + " WHERE name = ?")) {
+
                 statement.setString(1, name);
+
                 try (ResultSet result = statement.executeQuery()) {
                     if (result.next()) {
                         location = readLocation(result);
                     }
                 }
             }
+
             if (location != null) {
                 try (PreparedStatement statement = connection.prepareStatement(
                         "DELETE FROM " + table + " WHERE name = ?")) {
+
                     statement.setString(1, name);
                     statement.executeUpdate();
                 }
             }
+
             return location;
+
         } catch (SQLException exception) {
             LogHelper.LOGGER.warning(() ->
                     "Failed to load and delete location for '" + name + "': " + exception.getMessage());
         }
+
         return null;
     }
 
     private Collection<SavedLocation> doGetAll() {
         List<SavedLocation> locations = new ArrayList<>();
-        String sql = "SELECT name, x, y, z, world FROM " + table;
+
+        String sql = "SELECT name, x, y, z, yaw, pitch, world FROM " + table;
+
         try (Connection connection = connectionProvider.getConnection();
              Statement statement = connection.createStatement();
              ResultSet result = statement.executeQuery(sql)) {
+
             while (result.next()) {
                 locations.add(readLocation(result));
             }
+
         } catch (SQLException exception) {
             LogHelper.LOGGER.warning(() ->
                     "Failed to load all locations: " + exception.getMessage());
         }
+
         return locations;
     }
 
     private boolean exists(Connection connection, String name) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT name FROM " + table + " WHERE name = ?")) {
+
             statement.setString(1, name);
+
             try (ResultSet result = statement.executeQuery()) {
                 return result.next();
             }
@@ -186,7 +229,9 @@ public class SavedLocationRepository {
     }
 
     private void insert(Connection connection, SavedLocation location) throws SQLException {
-        String sql = "INSERT INTO " + table + " (name, x, y, z, world) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO " + table +
+                " (name, x, y, z, yaw, pitch, world) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             bind(statement, location);
             statement.executeUpdate();
@@ -194,13 +239,19 @@ public class SavedLocationRepository {
     }
 
     private void update(Connection connection, SavedLocation location) throws SQLException {
-        String sql = "UPDATE " + table + " SET x = ?, y = ?, z = ?, world = ? WHERE name = ?";
+        String sql = "UPDATE " + table +
+                " SET x = ?, y = ?, z = ?, yaw = ?, pitch = ?, world = ? WHERE name = ?";
+
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
+
             statement.setDouble(1, location.x());
             statement.setDouble(2, location.y());
             statement.setDouble(3, location.z());
-            statement.setString(4, location.world());
-            statement.setString(5, location.name());
+            statement.setFloat(4, location.yaw());
+            statement.setFloat(5, location.pitch());
+            statement.setString(6, location.world());
+            statement.setString(7, location.name());
+
             statement.executeUpdate();
         }
     }
@@ -210,7 +261,9 @@ public class SavedLocationRepository {
         statement.setDouble(2, location.x());
         statement.setDouble(3, location.y());
         statement.setDouble(4, location.z());
-        statement.setString(5, location.world());
+        statement.setFloat(5, location.yaw());
+        statement.setFloat(6, location.pitch());
+        statement.setString(7, location.world());
     }
 
     private SavedLocation readLocation(ResultSet result) throws SQLException {
@@ -219,7 +272,9 @@ public class SavedLocationRepository {
                 result.getString("world"),
                 result.getDouble("x"),
                 result.getDouble("y"),
-                result.getDouble("z")
+                result.getDouble("z"),
+                result.getFloat("yaw"),
+                result.getFloat("pitch")
         );
     }
 }

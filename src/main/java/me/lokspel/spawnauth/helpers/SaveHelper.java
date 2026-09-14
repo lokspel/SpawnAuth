@@ -40,7 +40,9 @@ public class SaveHelper {
                 location.getWorld().getName(),
                 location.getX(),
                 location.getY(),
-                location.getZ()
+                location.getZ(),
+                location.getYaw(),
+                location.getPitch()
         );
 
         if (cache != null) {
@@ -127,6 +129,13 @@ public class SaveHelper {
             return null;
         }
 
-        return new Location(world, saved.x(), saved.y(), saved.z());
+        return new Location(
+                world,
+                saved.x(),
+                saved.y(),
+                saved.z(),
+                saved.yaw(),
+                saved.pitch()
+        );
     }
 }

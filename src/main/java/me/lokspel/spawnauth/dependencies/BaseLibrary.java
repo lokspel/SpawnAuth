@@ -23,6 +23,11 @@ public enum BaseLibrary {
             "org.slf4j",
             "slf4j-api",
             "2.0.13"
+    ),
+    SLF4J_JDK14(
+            "org.slf4j",
+            "slf4j-jdk14",
+            "2.0.13"
     );
 
     private final String fileName;

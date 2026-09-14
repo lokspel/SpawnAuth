@@ -16,7 +16,7 @@ public enum DatabaseLibrary {
                     + "/" + section.getMySqlDatabase() + "?" + section.getMySqlUrlParameters()
     ),
     SQLITE(
-            new BaseLibrary[]{BaseLibrary.SQLITE, BaseLibrary.SLF4J},
+            new BaseLibrary[]{BaseLibrary.SQLITE, BaseLibrary.SLF4J, BaseLibrary.SLF4J_JDK14},
             "org.sqlite.JDBC",
             section -> "jdbc:sqlite:" + section.getDatabaseFile().getAbsolutePath()
     );

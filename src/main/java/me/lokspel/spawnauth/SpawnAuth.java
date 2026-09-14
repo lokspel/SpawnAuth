@@ -120,10 +120,11 @@ public final class SpawnAuth extends JavaPlugin {
     }
 
     private SaveHelper initSaveHelper(MainConfig config) {
-        boolean cache = config.database().isCacheEnabled();
+        boolean cache = config.database().useCache();
+        var libsDir = getDataFolder().toPath().resolve("libraries");
 
         try {
-            return new SaveHelper(Database.create(config.database(), cache), cache);
+            return new SaveHelper(Database.create(config.database(), libsDir, cache), cache);
         } catch (Exception e) {
             if (cache) {
                 LogHelper.LOGGER.log(

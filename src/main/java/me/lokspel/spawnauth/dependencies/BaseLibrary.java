@@ -30,11 +30,11 @@ public enum BaseLibrary {
             "2.0.13"
     );
 
-    private final Path filenamePath;
+    private final String mavenPath;
     private final URL mavenRepoURL;
 
     BaseLibrary(String groupId, String artifactId, String version) {
-        String mavenPath = String.format("%s/%s/%s/%s-%s.jar",
+        this.mavenPath = String.format("%s/%s/%s/%s-%s.jar",
                 groupId.replace(".", "/"),
                 artifactId,
                 version,
@@ -43,25 +43,21 @@ public enum BaseLibrary {
         );
 
         try {
-            this.filenamePath = Path.of("libraries/" + mavenPath);
             this.mavenRepoURL = new URL("https://repo1.maven.org/maven2/" + mavenPath);
         } catch (MalformedURLException exception) {
             throw new IllegalArgumentException(exception);
         }
     }
 
-    public URL getClassLoaderURL() throws MalformedURLException {
-        if (!Files.exists(this.filenamePath)) {
-            try {
-                try (InputStream in = this.mavenRepoURL.openStream()) {
-                    Files.createDirectories(this.filenamePath.getParent());
-                    Files.copy(in, Files.createFile(this.filenamePath), StandardCopyOption.REPLACE_EXISTING);
-                }
-            } catch (IOException e) {
-                throw new IllegalArgumentException(e);
+    public URL getClassLoaderURL(Path libsDir) throws IOException {
+        Path jar = libsDir.resolve(mavenPath);
+        if (!Files.exists(jar)) {
+            Files.createDirectories(jar.getParent());
+            try (InputStream in = mavenRepoURL.openStream()) {
+                Files.copy(in, jar, StandardCopyOption.REPLACE_EXISTING);
             }
         }
 
-        return this.filenamePath.toUri().toURL();
+        return jar.toUri().toURL();
     }
 }

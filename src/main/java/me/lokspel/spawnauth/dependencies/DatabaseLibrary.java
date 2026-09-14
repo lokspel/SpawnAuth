@@ -3,6 +3,7 @@ package me.lokspel.spawnauth.dependencies;
 import me.lokspel.spawnauth.config.section.DatabaseSection;
 
 import java.net.URL;
+import java.nio.file.Path;
 import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.Locale;
@@ -33,14 +34,14 @@ public enum DatabaseLibrary {
         this.jdbcGetter = jdbcGetter;
     }
 
-    public void ensureLoaded() throws Exception {
+    public void ensureLoaded(Path libsDir) throws Exception {
         if (driver.isLoaded()) {
             return;
         }
 
         URL[] urls = new URL[baseLibraries.length];
         for (int i = 0; i < baseLibraries.length; i++) {
-            urls[i] = baseLibraries[i].getClassLoaderURL();
+            urls[i] = baseLibraries[i].getClassLoaderURL(libsDir);
         }
 
         IsolatedClassLoader classLoader = new IsolatedClassLoader(urls);

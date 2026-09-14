@@ -5,6 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import me.lokspel.spawnauth.config.section.DatabaseSection;
 import me.lokspel.spawnauth.dependencies.DatabaseLibrary;
 
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -12,8 +13,8 @@ public final class MySqlConnectionProvider implements ConnectionProvider {
 
     private final HikariDataSource dataSource;
 
-    public MySqlConnectionProvider(DatabaseSection section) throws Exception {
-        DatabaseLibrary.MYSQL.ensureLoaded();
+    public MySqlConnectionProvider(DatabaseSection section, Path libsDir) throws Exception {
+        DatabaseLibrary.MYSQL.ensureLoaded(libsDir);
 
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(DatabaseLibrary.MYSQL.getJdbcUrl(section));

@@ -32,7 +32,7 @@ public final class DatabaseSection {
         return config().getString("database.table-prefix", "spawnauth");
     }
 
-    public boolean isCacheEnabled() {
+    public boolean useCache() {
         return config().getBoolean("database.cache", true);
     }
 

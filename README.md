@@ -13,6 +13,6 @@ The plugin is designed to replace the built-in spawn/limbo handling of these plu
 - After authentication the player is always returned to the location they had before being moved, regardless of the mode.
 - All dimensions (overworld, nether, end) use the same configured world — no per-dimension config.
 - Optional automatic creation of a void world.
-- Location storage in SQLite, MySQL, or in-memory cache only.
+- Location storage in SQLite, MySQL, or in-memory cache only. The cache can also be enabled on top of a database.
 - JDBC drivers are downloaded automatically on first use into `plugins/SpawnAuth/libraries/` — no manual installation required.
 - If the database is unavailable, SpawnAuth falls back to the in-memory cache (when `database.cache: true`) or disables persistence.

@@ -17,13 +17,11 @@ public class SaveHelper {
     private final Database database;
     private final SavedLocationRepository repository;
     private final SavedLocationCache cache;
-    private final boolean debug;
 
-    public SaveHelper(Database database, boolean cacheEnabled, boolean debug) {
+    public SaveHelper(Database database, boolean cacheEnabled) {
         this.database = database;
         this.repository = database != null ? database.getSavedLocationRepository() : null;
         this.cache = cacheEnabled ? new SavedLocationCache() : null;
-        this.debug = debug;
     }
 
     public void setupDataBase() {
@@ -45,10 +43,6 @@ public class SaveHelper {
                 location.getZ()
         );
 
-        if (debug) {
-            LogHelper.LOGGER.info(() -> "[DBG] save " + name + " -> " + format(saved));
-        }
-
         if (cache != null) {
             cache.put(saved);
         }
@@ -58,10 +52,6 @@ public class SaveHelper {
     }
 
     public void removeLocation(String name) {
-        if (debug) {
-            LogHelper.LOGGER.info(() -> "[DBG] remove " + name);
-        }
-
         if (cache != null) {
             cache.remove(name);
         }
@@ -79,11 +69,6 @@ public class SaveHelper {
             }
         }
 
-        if (debug) {
-            SavedLocation result = saved;
-            LogHelper.LOGGER.info(() -> "[DBG] get " + name + " -> " + (result != null ? format(result) : "null"));
-        }
-
         return toLocation(saved);
     }
 
@@ -99,11 +84,6 @@ public class SaveHelper {
             } else {
                 saved = repository.take(name);
             }
-        }
-
-        if (debug) {
-            SavedLocation result = saved;
-            LogHelper.LOGGER.info(() -> "[DBG] take " + name + " -> " + (result != null ? format(result) : "null"));
         }
 
         return toLocation(saved);
@@ -148,13 +128,5 @@ public class SaveHelper {
         }
 
         return new Location(world, saved.x(), saved.y(), saved.z());
-    }
-
-    private String format(SavedLocation saved) {
-        return saved.world() + " " + trim(saved.x()) + " " + trim(saved.y()) + " " + trim(saved.z());
-    }
-
-    private String trim(double value) {
-        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 }

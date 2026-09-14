@@ -65,7 +65,3 @@ database:
   pool:
     max-pool-size: 10
     connection-timeout-ms: 30000
-
-# Debug logging for the location save/restore flow.
-# On: writes every save/read/take/teleport coordinate to the console.
-debug: false

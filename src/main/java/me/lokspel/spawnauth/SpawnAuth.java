@@ -27,6 +27,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 
 public final class SpawnAuth extends JavaPlugin {
@@ -60,21 +61,7 @@ public final class SpawnAuth extends JavaPlugin {
         metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
         metrics.addCustomChart(new SimplePie("database_type", config.database().getType()::name));
 
-        boolean cacheEnabled = config.database().isCacheEnabled();
-        Database database;
-        try {
-            database = Database.create(
-                    config.database(),
-                    getDataFolder().toPath().resolve("libraries"),
-                    cacheEnabled
-            );
-        } catch (Exception exception) {
-            LogHelper.LOGGER.severe("Failed to initialize the database: " + exception.getMessage());
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        saveHelper = new SaveHelper(database, cacheEnabled, getConfig().getBoolean("debug", false));
+        saveHelper = initSaveHelper(config);
         gameHelper = new GameHelper(this, config.limbo());
 
         // Setup data base
@@ -130,6 +117,30 @@ public final class SpawnAuth extends JavaPlugin {
 
     public FoliaLib getFoliaLib() {
         return foliaLib;
+    }
+
+    private SaveHelper initSaveHelper(MainConfig config) {
+        boolean cache = config.database().isCacheEnabled();
+
+        try {
+            return new SaveHelper(Database.create(config.database(), cache), cache);
+        } catch (Exception e) {
+            if (cache) {
+                LogHelper.LOGGER.log(
+                        Level.SEVERE,
+                        "Database is unavailable, falling back to in-memory cache",
+                        e
+                );
+            } else {
+                LogHelper.LOGGER.log(
+                        Level.SEVERE,
+                        "Database is unavailable, persistence is disabled",
+                        e
+                );
+            }
+
+            return new SaveHelper(null, cache);
+        }
     }
 
     private String getProvider() {

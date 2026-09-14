@@ -2,7 +2,7 @@ package me.lokspel.spawnauth.dependencies;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,8 +30,8 @@ public enum BaseLibrary {
             "2.0.13"
     );
 
-    private final String fileName;
-    private final String mavenUrl;
+    private final Path filenamePath;
+    private final URL mavenRepoURL;
 
     BaseLibrary(String groupId, String artifactId, String version) {
         String mavenPath = String.format("%s/%s/%s/%s-%s.jar",
@@ -42,23 +42,26 @@ public enum BaseLibrary {
                 version
         );
 
-        this.fileName = artifactId + "-" + version + ".jar";
-        this.mavenUrl = "https://repo1.maven.org/maven2/" + mavenPath;
+        try {
+            this.filenamePath = Path.of("libraries/" + mavenPath);
+            this.mavenRepoURL = new URL("https://repo1.maven.org/maven2/" + mavenPath);
+        } catch (MalformedURLException exception) {
+            throw new IllegalArgumentException(exception);
+        }
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public URL getClassLoaderURL(Path libsDir) throws IOException {
-        Path jar = libsDir.resolve(fileName);
-        if (!Files.exists(jar)) {
-            try (InputStream in = URI.create(mavenUrl).toURL().openStream()) {
-                Files.createDirectories(libsDir);
-                Files.copy(in, jar, StandardCopyOption.REPLACE_EXISTING);
+    public URL getClassLoaderURL() throws MalformedURLException {
+        if (!Files.exists(this.filenamePath)) {
+            try {
+                try (InputStream in = this.mavenRepoURL.openStream()) {
+                    Files.createDirectories(this.filenamePath.getParent());
+                    Files.copy(in, Files.createFile(this.filenamePath), StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException e) {
+                throw new IllegalArgumentException(e);
             }
         }
 
-        return jar.toUri().toURL();
+        return this.filenamePath.toUri().toURL();
     }
 }

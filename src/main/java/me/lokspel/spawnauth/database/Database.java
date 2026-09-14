@@ -6,7 +6,6 @@ import me.lokspel.spawnauth.database.connection.MySqlConnectionProvider;
 import me.lokspel.spawnauth.database.connection.SqliteConnectionProvider;
 import me.lokspel.spawnauth.database.repository.SavedLocationRepository;
 
-import java.nio.file.Path;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -23,26 +22,26 @@ public final class Database implements AutoCloseable {
         this.savedLocationRepository = new SavedLocationRepository(connectionProvider, tablePrefix, executor);
     }
 
-    public static Database forSQLite(DatabaseSection section, Path libsDir, String tablePrefix) throws Exception {
+    public static Database forSQLite(DatabaseSection section, String tablePrefix) throws Exception {
         return new Database(
-                new SqliteConnectionProvider(section, libsDir),
+                new SqliteConnectionProvider(section),
                 tablePrefix,
                 Executors.newSingleThreadExecutor()
         );
     }
 
-    public static Database forMySQL(DatabaseSection section, Path libsDir) throws Exception {
+    public static Database forMySQL(DatabaseSection section) throws Exception {
         return new Database(
-                new MySqlConnectionProvider(section, libsDir),
+                new MySqlConnectionProvider(section),
                 section.getTablePrefix(),
                 Executors.newFixedThreadPool(Math.max(section.getMaxPoolSize(), 1))
         );
     }
 
-    public static Database create(DatabaseSection section, Path libsDir, boolean cacheEnabled) throws Exception {
+    public static Database create(DatabaseSection section, boolean cacheEnabled) throws Exception {
         return switch (section.getType()) {
-            case SQLITE -> forSQLite(section, libsDir, section.getTablePrefix());
-            case MYSQL -> forMySQL(section, libsDir);
+            case SQLITE -> forSQLite(section, section.getTablePrefix());
+            case MYSQL -> forMySQL(section);
             case NONE -> {
                 if (!cacheEnabled) {
                     throw new IllegalStateException("Database type 'none' requires the in-memory cache to be enabled.");

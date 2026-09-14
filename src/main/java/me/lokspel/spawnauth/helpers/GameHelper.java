@@ -79,16 +79,6 @@ public class GameHelper {
         } else {
             player.teleportAsync(location);
         }
-
-        if (plugin.getConfig().getBoolean("debug", false)) {
-            LogHelper.LOGGER.info(() -> "[DBG] teleport " + player.getName() + " -> "
-                    + location.getWorld().getName() + " "
-                    + trim(location.getX()) + " " + trim(location.getY()) + " " + trim(location.getZ()));
-        }
-    }
-
-    private String trim(double value) {
-        return String.format(java.util.Locale.ROOT, "%.2f", value);
     }
 
     public boolean isAuthenticated(Player player) {

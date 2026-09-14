@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -20,7 +20,6 @@
     <bstats.version>3.2.1</bstats.version>
     <folialib.version>0.5.1</folialib.version>
     <hikaricp.version>6.2.1</hikaricp.version>
-    <mysql.version>9.4.0</mysql.version>
     <slf4j.version>2.0.13</slf4j.version>
 
     <!-- Build tooling -->
@@ -106,12 +105,6 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>com.mysql</groupId>
-      <artifactId>mysql-connector-j</artifactId>
-      <version>${mysql.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
       <version>${slf4j.version}</version>
@@ -160,10 +153,6 @@
                 <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
                   <shadedPattern>me.lokspel.spawnauth.thirdparty.hikari</shadedPattern>
-                </relocation>
-                <relocation>
-                  <pattern>org.slf4j</pattern>
-                  <shadedPattern>me.lokspel.spawnauth.thirdparty.slf4j</shadedPattern>
                 </relocation>
               </relocations>
               <transformers>

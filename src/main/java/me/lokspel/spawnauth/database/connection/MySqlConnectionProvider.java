@@ -3,7 +3,9 @@ package me.lokspel.spawnauth.database.connection;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import me.lokspel.spawnauth.config.section.DatabaseSection;
+import me.lokspel.spawnauth.dependencies.DatabaseLibrary;
 
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -11,13 +13,13 @@ public final class MySqlConnectionProvider implements ConnectionProvider {
 
     private final HikariDataSource dataSource;
 
-    public MySqlConnectionProvider(DatabaseSection section) {
+    public MySqlConnectionProvider(DatabaseSection section, Path libsDir) throws Exception {
+        DatabaseLibrary.MYSQL.ensureLoaded(libsDir);
+
         HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:mysql://" + section.getMySqlHost() + ":" + section.getMySqlPort() +
-                "/" + section.getMySqlDatabase() + "?" + section.getMySqlUrlParameters());
+        config.setJdbcUrl(DatabaseLibrary.MYSQL.getJdbcUrl(section));
         config.setUsername(section.getMySqlUser());
         config.setPassword(section.getMySqlPassword());
-        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setMaximumPoolSize(section.getMaxPoolSize());
         config.setConnectionTimeout(section.getConnectionTimeoutMs());
         config.setPoolName("spawnauth-mysql");

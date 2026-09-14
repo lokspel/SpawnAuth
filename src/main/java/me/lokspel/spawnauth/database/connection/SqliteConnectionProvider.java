@@ -1,6 +1,9 @@
 package me.lokspel.spawnauth.database.connection;
 
-import java.io.File;
+import me.lokspel.spawnauth.config.section.DatabaseSection;
+import me.lokspel.spawnauth.dependencies.DatabaseLibrary;
+
+import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -9,8 +12,9 @@ public final class SqliteConnectionProvider implements ConnectionProvider {
 
     private final String url;
 
-    public SqliteConnectionProvider(File file) {
-        this.url = "jdbc:sqlite:" + file.getAbsolutePath();
+    public SqliteConnectionProvider(DatabaseSection section, Path libsDir) throws Exception {
+        DatabaseLibrary.SQLITE.ensureLoaded(libsDir);
+        this.url = DatabaseLibrary.SQLITE.getJdbcUrl(section);
     }
 
     @Override

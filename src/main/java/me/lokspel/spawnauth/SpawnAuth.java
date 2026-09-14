@@ -63,7 +63,11 @@ public final class SpawnAuth extends JavaPlugin {
         boolean cacheEnabled = config.database().isCacheEnabled();
         Database database;
         try {
-            database = Database.create(config.database(), cacheEnabled);
+            database = Database.create(
+                    config.database(),
+                    getDataFolder().toPath().resolve("libraries"),
+                    cacheEnabled
+            );
         } catch (Exception exception) {
             LogHelper.LOGGER.severe("Failed to initialize the database: " + exception.getMessage());
             getServer().getPluginManager().disablePlugin(this);

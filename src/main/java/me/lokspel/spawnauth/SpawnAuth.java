@@ -41,8 +41,9 @@ public final class SpawnAuth extends JavaPlugin {
 
         // Setup dataFolder
         if (!getDataFolder().mkdirs() && !getDataFolder().exists()) {
-            LogHelper.LOGGER.severe("DataBase folder failed to create.");
-            getServer().shutdown();
+            LogHelper.LOGGER.severe("Failed to create the plugin folder.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
         }
 
         foliaLib = new FoliaLib(this);
@@ -62,6 +63,10 @@ public final class SpawnAuth extends JavaPlugin {
         metrics.addCustomChart(new SimplePie("database_type", config.database().getType()::name));
 
         saveHelper = initSaveHelper(config);
+        if (saveHelper == null) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
         gameHelper = new GameHelper(this, config.limbo());
 
         // Setup data base
@@ -72,6 +77,8 @@ public final class SpawnAuth extends JavaPlugin {
 
         if (config.limbo().usesFixedSpawn()) {
             if (new LimboWorldManager(this, gameHelper, config.limbo()).createLimboWorld() == null) {
+                LogHelper.LOGGER.severe("Unable to load the limbo world.");
+                getServer().getPluginManager().disablePlugin(this);
                 return;
             }
         }
@@ -132,15 +139,15 @@ public final class SpawnAuth extends JavaPlugin {
                         "Database is unavailable, falling back to in-memory cache",
                         e
                 );
-            } else {
-                LogHelper.LOGGER.log(
-                        Level.SEVERE,
-                        "Database is unavailable, persistence is disabled",
-                        e
-                );
+                return new SaveHelper(null, true);
             }
 
-            return new SaveHelper(null, cache);
+            LogHelper.LOGGER.log(
+                    Level.SEVERE,
+                    "Database is unavailable.",
+                    e
+            );
+            return null;
         }
     }
 

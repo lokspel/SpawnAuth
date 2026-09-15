@@ -138,6 +138,7 @@ public class SaveHelper {
         return CompletableFuture.completedFuture(null);
     }
 
+    // Cache-only fallback for restoring online players before shutdown.
     public void handleDisable(GameHelper gameHelper) {
         Collection<SavedLocation> savedLocations;
         try {

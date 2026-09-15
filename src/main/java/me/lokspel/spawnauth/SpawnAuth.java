@@ -36,10 +36,13 @@ public final class SpawnAuth extends JavaPlugin {
     public static final ErrorTracker ERROR_TRACKER = ErrorTracker.contextAware();
 
     private final Map<String, Boolean> pluginEnabledCache = new ConcurrentHashMap<>();
+    private final BukkitContext fastStatsContext = new BukkitContext.Factory(this, "d78bc9e16b230262d97d101ae00b77d4")
+            .errorTrackerService(ERROR_TRACKER)
+            .metrics(dev.faststats.Metrics.Factory::create)
+            .create();
     private FoliaLib foliaLib;
     private SaveHelper saveHelper;
     private GameHelper gameHelper;
-    private BukkitContext fastStatsContext;
 
     @Override
     public void onEnable() {
@@ -68,10 +71,6 @@ public final class SpawnAuth extends JavaPlugin {
         metrics.addCustomChart(new SimplePie("database_type", config.database().getType()::name));
 
         // FastStats
-        fastStatsContext = new BukkitContext.Factory(this, "d78bc9e16b230262d97d101ae00b77d4")
-                .errorTrackerService(ERROR_TRACKER)
-                .metrics(dev.faststats.Metrics.Factory::create)
-                .create();
         fastStatsContext.ready();
 
         saveHelper = initSaveHelper(config);
@@ -122,9 +121,7 @@ public final class SpawnAuth extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (fastStatsContext != null) {
-            fastStatsContext.shutdown();
-        }
+        fastStatsContext.shutdown();
 
         if (foliaLib != null) {
             foliaLib.getScheduler().cancelAllTasks();

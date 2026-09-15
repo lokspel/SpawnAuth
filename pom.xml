@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>me.lokspel</groupId>
   <artifactId>spawnauth</artifactId>
-  <version>1.1.1</version>
+  <version>1.1.2</version>
   <name>SpawnAuth</name>
 
   <properties>

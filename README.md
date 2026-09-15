@@ -1,6 +1,6 @@
 # SpawnAuth
 
-Authentication limbo and location restoration plugin for AuthMe, nLogin, OpeNLogin, and LoginSecurity
+Authentication limbo and location restoration plugin
 
 ## » About
 
@@ -10,18 +10,17 @@ Designed to replace the built-in spawn/limbo handling of authentication plugins,
 
 It is recommended to disable the corresponding spawn/limbo features in your authentication plugin when using this plugin.
 
-## » Dependencies
+## » Supported Authentication Plugins
 
-* **AuthMe** — optional
-* **nLogin** — optional
-* **OpeNLogin** — optional
-* **LoginSecurity** — optional
+* **AuthMe**
+* **nLogin**
+* **OpeNLogin**
+* **LoginSecurity**
 
 At least one supported authentication plugin is required.
 
 ## » Features
 
-* Supports **AuthMe**, **nLogin**, **OpeNLogin**, and **LoginSecurity**
 * Saves and restores the player's original location
 * Separate waiting spots for **login** and **registration**
 * `vanilla`, `fixed`, and `disabled` waiting modes

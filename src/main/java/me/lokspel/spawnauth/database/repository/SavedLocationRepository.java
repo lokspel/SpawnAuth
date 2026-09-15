@@ -12,9 +12,11 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Level;
 
 public class SavedLocationRepository {
 
@@ -51,11 +53,17 @@ public class SavedLocationRepository {
     }
 
     public CompletableFuture<Void> upsert(SavedLocation location) {
-        return submit(() -> doUpsert(location));
+        return submit(() -> {
+            doUpsert(location);
+            return null;
+        });
     }
 
     public CompletableFuture<Void> delete(String name) {
-        return submit(() -> doDelete(name));
+        return submit(() -> {
+            doDelete(name);
+            return null;
+        });
     }
 
     public CompletableFuture<SavedLocation> get(String name) {
@@ -70,32 +78,27 @@ public class SavedLocationRepository {
         return submit(this::doGetAll);
     }
 
-    private CompletableFuture<Void> submit(Runnable task) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        executor.submit(() -> {
-            try {
-                task.run();
-                future.complete(null);
-            } catch (Exception exception) {
-                LogHelper.LOGGER.severe(() ->
-                        "Unexpected error in database executor: " + exception.getMessage());
-                future.completeExceptionally(exception);
-            }
-        });
-        return future;
-    }
-
     private <T> CompletableFuture<T> submit(Callable<T> task) {
         CompletableFuture<T> future = new CompletableFuture<>();
-        executor.submit(() -> {
-            try {
-                future.complete(task.call());
-            } catch (Exception exception) {
-                LogHelper.LOGGER.severe(() ->
-                        "Unexpected error in database executor: " + exception.getMessage());
-                future.completeExceptionally(exception);
-            }
-        });
+
+        try {
+            executor.submit(() -> {
+                try {
+                    future.complete(task.call());
+                } catch (Exception exception) {
+                    LogHelper.LOGGER.log(
+                            Level.SEVERE,
+                            "Unexpected error in database executor",
+                            exception
+                    );
+
+                    future.completeExceptionally(exception);
+                }
+            });
+        } catch (RuntimeException exception) {
+            future.completeExceptionally(exception);
+        }
+
         return future;
     }
 
@@ -119,16 +122,42 @@ public class SavedLocationRepository {
         }
     }
 
-    private void addColumnIfMissing(Connection connection, String column, String definition) {
+    private void addColumnIfMissing(Connection connection, String column, String definition) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(
                     "ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition
             );
-        } catch (SQLException ignored) {
+        } catch (SQLException exception) {
+            if (!isColumnAlreadyExists(exception)) {
+                throw exception;
+            }
         }
     }
 
-    private void doUpsert(SavedLocation location) {
+    private boolean isColumnAlreadyExists(SQLException exception) {
+        String sqlState = exception.getSQLState();
+
+        if ("42S21".equals(sqlState)) {
+            return true;
+        }
+
+        if (exception.getErrorCode() == 1060) {
+            return true;
+        }
+
+        String message = exception.getMessage();
+
+        if (message == null) {
+            return false;
+        }
+
+        String lowerMessage = message.toLowerCase(Locale.ROOT);
+
+        return lowerMessage.contains("duplicate column")
+                || lowerMessage.contains("column already exists");
+    }
+
+    private void doUpsert(SavedLocation location) throws SQLException {
         String sql = String.format(isSqlite ? UPSERT_SQLITE : UPSERT_MYSQL, table);
 
         try (Connection connection = connectionProvider.getConnection();
@@ -145,34 +174,38 @@ public class SavedLocationRepository {
             statement.executeUpdate();
 
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to save location for '" + location.name() + "': " + exception.getMessage());
+            throw new SQLException(
+                    "Failed to save location for '" + location.name() + "': " + exception.getMessage(),
+                    exception
+            );
         }
     }
 
-    private void doDelete(String name) {
+    private void doDelete(String name) throws SQLException {
         try (Connection connection = connectionProvider.getConnection()) {
             delete(connection, name);
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to delete location for '" + name + "': " + exception.getMessage());
+            throw new SQLException(
+                    "Failed to delete location for '" + name + "': " + exception.getMessage(),
+                    exception
+            );
         }
     }
 
-    private SavedLocation doGet(String name) {
+    private SavedLocation doGet(String name) throws SQLException {
         String sql = "SELECT " + COLUMNS + " FROM " + table + " WHERE name = ?";
 
         try (Connection connection = connectionProvider.getConnection()) {
             return select(connection, sql, name);
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to load location for '" + name + "': " + exception.getMessage());
+            throw new SQLException(
+                    "Failed to load location for '" + name + "': " + exception.getMessage(),
+                    exception
+            );
         }
-
-        return null;
     }
 
-    private SavedLocation doTake(String name) {
+    private SavedLocation doTake(String name) throws SQLException {
         String sql = "SELECT " + COLUMNS + " FROM " + table + " WHERE name = ?"
                 + (isSqlite ? "" : " FOR UPDATE");
 
@@ -190,17 +223,25 @@ public class SavedLocationRepository {
                 connection.rollback();
                 throw exception;
             } finally {
-                connection.setAutoCommit(previousAutoCommit);
+                try {
+                    connection.setAutoCommit(previousAutoCommit);
+                } catch (SQLException restoreException) {
+                    LogHelper.LOGGER.log(
+                            Level.WARNING,
+                            "Failed to restore auto-commit mode",
+                            restoreException
+                    );
+                }
             }
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to load and delete location for '" + name + "': " + exception.getMessage());
+            throw new SQLException(
+                    "Failed to load and delete location for '" + name + "': " + exception.getMessage(),
+                    exception
+            );
         }
-
-        return null;
     }
 
-    private Collection<SavedLocation> doGetAll() {
+    private Collection<SavedLocation> doGetAll() throws SQLException {
         List<SavedLocation> locations = new ArrayList<>();
 
         String sql = "SELECT " + COLUMNS + " FROM " + table;
@@ -214,8 +255,10 @@ public class SavedLocationRepository {
             }
 
         } catch (SQLException exception) {
-            LogHelper.LOGGER.warning(() ->
-                    "Failed to load all locations: " + exception.getMessage());
+            throw new SQLException(
+                    "Failed to load all locations: " + exception.getMessage(),
+                    exception
+            );
         }
 
         return locations;

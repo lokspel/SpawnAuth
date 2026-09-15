@@ -5,6 +5,7 @@ import me.lokspel.spawnauth.config.section.LimboSection;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class GameHelper {
@@ -63,22 +64,22 @@ public class GameHelper {
         return location.distanceSquared(authSpawn) > 4.0;
     }
 
-    public void teleport(Player player, Location location) {
+    public CompletableFuture<Boolean> teleport(Player player, Location location) {
         if (player == null) {
             LogHelper.LOGGER.warning("Teleport was skipped because the target player reference was null.");
-            return;
+            return CompletableFuture.completedFuture(false);
         }
 
         if (location == null || location.getWorld() == null) {
             LogHelper.LOGGER.warning(() -> "Teleport was skipped for player '" + player.getName()
                     + "' because the destination location or world was null.");
-            return;
+            return CompletableFuture.completedFuture(false);
         }
 
         if (!plugin.getFoliaLib().isFolia() && Bukkit.isPrimaryThread()) {
-            player.teleport(location);
+            return CompletableFuture.completedFuture(player.teleport(location));
         } else {
-            player.teleportAsync(location);
+            return player.teleportAsync(location);
         }
     }
 

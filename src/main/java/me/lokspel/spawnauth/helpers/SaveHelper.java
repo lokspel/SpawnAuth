@@ -30,6 +30,19 @@ public class SaveHelper {
         this.registerMode = registerMode;
     }
 
+    public static SaveHelper create(Database database, boolean cacheEnabled,
+                                    String loginMode, String registerMode) {
+        SaveHelper saveHelper = new SaveHelper(database, cacheEnabled, loginMode, registerMode);
+
+        try {
+            saveHelper.setupDataBase();
+            return saveHelper;
+        } catch (RuntimeException exception) {
+            saveHelper.closeDatabase();
+            throw exception;
+        }
+    }
+
     public boolean usePersistence(Player player) {
         if (player == null) {
             return false;
@@ -38,9 +51,22 @@ public class SaveHelper {
         return !"disabled".equalsIgnoreCase(mode);
     }
 
-    public void setupDataBase() {
+    private void setupDataBase() {
         if (repository != null) {
-            repository.init();
+            try {
+                repository.init().join();
+            } catch (CompletionException exception) {
+                throw new IllegalStateException(
+                        "Failed to initialize the locations table",
+                        exception.getCause()
+                );
+            }
+        }
+    }
+
+    private void closeDatabase() {
+        if (database != null) {
+            database.close();
         }
     }
 
@@ -130,8 +156,10 @@ public class SaveHelper {
                 Player player = Bukkit.getPlayer(saved.name());
 
                 if (location != null && player != null && player.isOnline()) {
-                    gameHelper.teleport(player, location);
-                    removeLocation(saved.name());
+                    Boolean success = gameHelper.teleport(player, location).join();
+                    if (Boolean.TRUE.equals(success)) {
+                        removeLocation(saved.name());
+                    }
                 }
             } catch (Exception exception) {
                 LogHelper.LOGGER.warning(() ->
@@ -142,9 +170,7 @@ public class SaveHelper {
         if (cache != null) {
             cache.clear();
         }
-        if (database != null) {
-            database.close();
-        }
+        closeDatabase();
     }
 
     private Location toLocation(SavedLocation saved) {

@@ -69,9 +69,6 @@ public final class SpawnAuth extends JavaPlugin {
         }
         gameHelper = new GameHelper(this, config.limbo());
 
-        // Setup data base
-        saveHelper.setupDataBase();
-
         String loginMode = config.limbo().getLoginSpawnMode();
         String registerMode = config.limbo().getRegisterSpawnMode();
 
@@ -133,7 +130,8 @@ public final class SpawnAuth extends JavaPlugin {
         String registerMode = config.limbo().getRegisterSpawnMode();
 
         try {
-            return new SaveHelper(Database.create(config.database(), libsDir, cache), cache, loginMode, registerMode);
+            Database database = Database.create(config.database(), libsDir, cache);
+            return SaveHelper.create(database, cache, loginMode, registerMode);
         } catch (Exception e) {
             if (cache) {
                 LogHelper.LOGGER.log(

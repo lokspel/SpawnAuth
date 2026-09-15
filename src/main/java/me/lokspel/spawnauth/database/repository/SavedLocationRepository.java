@@ -44,7 +44,10 @@ public class SavedLocationRepository {
     }
 
     public CompletableFuture<Void> init() {
-        return submit(this::createTable);
+        return submit(() -> {
+            createTable();
+            return null;
+        });
     }
 
     public CompletableFuture<Void> upsert(SavedLocation location) {
@@ -96,7 +99,7 @@ public class SavedLocationRepository {
         return future;
     }
 
-    private void createTable() {
+    private void createTable() throws SQLException {
         String sql = "CREATE TABLE IF NOT EXISTS " + table + " (" +
                 "name VARCHAR(64) PRIMARY KEY," +
                 "x DOUBLE NOT NULL," +
@@ -113,10 +116,6 @@ public class SavedLocationRepository {
 
             addColumnIfMissing(connection, "yaw", "FLOAT NOT NULL DEFAULT 0");
             addColumnIfMissing(connection, "pitch", "FLOAT NOT NULL DEFAULT 0");
-
-        } catch (SQLException exception) {
-            LogHelper.LOGGER.severe(() ->
-                    "Failed to create/update the locations table: " + exception.getMessage());
         }
     }
 

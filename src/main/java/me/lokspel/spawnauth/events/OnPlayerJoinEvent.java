@@ -32,14 +32,14 @@ public class OnPlayerJoinEvent implements Listener {
         if (player.isDead()) {
             saveHelper.removeLocation(player.getName());
             player.spigot().respawn();
-            plugin.getFoliaLib().getScheduler().runAtEntity(player, unused -> handlePostJoin(player));
+            plugin.getFoliaLib().getScheduler().runAtEntity(player, unused -> handlePostJoin(player, true));
             return;
         }
 
-        handlePostJoin(player);
+        handlePostJoin(player, false);
     }
 
-    private void handlePostJoin(Player player) {
+    private void handlePostJoin(Player player, boolean fromRespawn) {
         if (!player.isOnline()) {
             return;
         }
@@ -56,7 +56,7 @@ public class OnPlayerJoinEvent implements Listener {
                         applyPendingLocation(player, playerName, joinLocation, location)));
 
         if (!gameHelper.isAuthenticated(player)) {
-            if (gameHelper.isInAuthWorld(player.getLocation())) {
+            if (fromRespawn && gameHelper.isInAuthWorld(player.getLocation())) {
                 return;
             }
             Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));

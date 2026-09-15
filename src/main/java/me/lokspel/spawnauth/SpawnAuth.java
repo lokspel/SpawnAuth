@@ -1,5 +1,6 @@
 package me.lokspel.spawnauth;
 
+import dev.faststats.ErrorTracker;
 import me.lokspel.spawnauth.config.MainConfig;
 import me.lokspel.spawnauth.events.OnPlayerJoinEvent;
 import me.lokspel.spawnauth.events.OnPlayerQuitEvent;
@@ -21,6 +22,7 @@ import me.lokspel.spawnauth.database.Database;
 import com.tcoded.folialib.FoliaLib;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
+import dev.faststats.bukkit.BukkitContext;
 import me.lokspel.spawnauth.world.LimboWorldManager;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -31,10 +33,13 @@ import java.util.logging.Level;
 
 
 public final class SpawnAuth extends JavaPlugin {
+    public static final ErrorTracker ERROR_TRACKER = ErrorTracker.contextAware();
+
     private final Map<String, Boolean> pluginEnabledCache = new ConcurrentHashMap<>();
     private FoliaLib foliaLib;
     private SaveHelper saveHelper;
     private GameHelper gameHelper;
+    private BukkitContext fastStatsContext;
 
     @Override
     public void onEnable() {
@@ -61,6 +66,13 @@ public final class SpawnAuth extends JavaPlugin {
         Metrics metrics = new Metrics(this, pluginId);
         metrics.addCustomChart(new SimplePie("auth_provider", () -> provider));
         metrics.addCustomChart(new SimplePie("database_type", config.database().getType()::name));
+
+        // FastStats
+        fastStatsContext = new BukkitContext.Factory(this, "d78bc9e16b230262d97d101ae00b77d4")
+                .errorTrackerService(ERROR_TRACKER)
+                .metrics(dev.faststats.Metrics.Factory::create)
+                .create();
+        fastStatsContext.ready();
 
         saveHelper = initSaveHelper(config);
         if (saveHelper == null) {
@@ -110,6 +122,10 @@ public final class SpawnAuth extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (fastStatsContext != null) {
+            fastStatsContext.shutdown();
+        }
+
         if (foliaLib != null) {
             foliaLib.getScheduler().cancelAllTasks();
         }

@@ -53,6 +53,11 @@ public class LoginSecurityLoginListener implements Listener {
 
     private void handleAuthenticatedPlayer(Player player, String mode) {
         String name = player.getName();
+
+        if (!saveHelper.usePersistence(player)) {
+            return;
+        }
+
         gameHelper.teleportAuthenticated(player, saveHelper, mode);
 
         gameHelper.updateLimboCollision(player);

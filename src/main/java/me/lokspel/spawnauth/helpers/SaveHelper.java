@@ -19,11 +19,23 @@ public class SaveHelper {
     private final Database database;
     private final SavedLocationRepository repository;
     private final SavedLocationCache cache;
+    private final String loginMode;
+    private final String registerMode;
 
-    public SaveHelper(Database database, boolean cacheEnabled) {
+    public SaveHelper(Database database, boolean cacheEnabled, String loginMode, String registerMode) {
         this.database = database;
         this.repository = database != null ? database.getSavedLocationRepository() : null;
         this.cache = cacheEnabled ? new SavedLocationCache() : null;
+        this.loginMode = loginMode;
+        this.registerMode = registerMode;
+    }
+
+    public boolean usePersistence(Player player) {
+        if (player == null) {
+            return false;
+        }
+        String mode = AuthHelper.isRegistered(player) ? loginMode : registerMode;
+        return !"disabled".equalsIgnoreCase(mode);
     }
 
     public void setupDataBase() {

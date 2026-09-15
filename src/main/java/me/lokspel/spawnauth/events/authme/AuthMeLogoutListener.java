@@ -16,6 +16,8 @@ public class AuthMeLogoutListener implements Listener {
     @EventHandler
     private void onPlayerLogout(LogoutEvent event) {
         Player player = event.getPlayer();
-        saveHelper.saveLocation(player.getName(), player.getLocation());
+        if (saveHelper.usePersistence(player)) {
+            saveHelper.saveLocation(player.getName(), player.getLocation());
+        }
     }
 }

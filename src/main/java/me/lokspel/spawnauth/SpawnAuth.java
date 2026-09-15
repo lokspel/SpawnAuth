@@ -129,9 +129,11 @@ public final class SpawnAuth extends JavaPlugin {
     private SaveHelper initSaveHelper(MainConfig config) {
         boolean cache = config.database().useCache();
         var libsDir = getDataFolder().toPath().resolve("libraries");
+        String loginMode = config.limbo().getLoginSpawnMode();
+        String registerMode = config.limbo().getRegisterSpawnMode();
 
         try {
-            return new SaveHelper(Database.create(config.database(), libsDir, cache), cache);
+            return new SaveHelper(Database.create(config.database(), libsDir, cache), cache, loginMode, registerMode);
         } catch (Exception e) {
             if (cache) {
                 LogHelper.LOGGER.log(
@@ -139,7 +141,7 @@ public final class SpawnAuth extends JavaPlugin {
                         "Database is unavailable, falling back to in-memory cache",
                         e
                 );
-                return new SaveHelper(null, true);
+                return new SaveHelper(null, true, loginMode, registerMode);
             }
 
             LogHelper.LOGGER.log(

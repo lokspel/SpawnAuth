@@ -16,7 +16,7 @@ public class NLoginUnregisterListener implements Listener {
     @EventHandler
     private void onPlayerUnregister(UnregisterEvent event) {
         Player player = event.getPlayer();
-        if (player != null && player.isOnline()) {
+        if (player != null && player.isOnline() && saveHelper.usePersistence(player)) {
             saveHelper.saveLocation(player.getName(), player.getLocation());
         }
     }

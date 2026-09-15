@@ -23,11 +23,13 @@ public class OnPlayerQuitEvent implements Listener {
         String name = player.getName();
         Location currentLocation = player.getLocation();
 
-        saveHelper.getLocation(name).thenAccept(location -> {
-            if (location == null) {
-                saveHelper.saveLocation(name, currentLocation);
-            }
-        });
+        if (saveHelper.usePersistence(player)) {
+            saveHelper.getLocation(name).thenAccept(location -> {
+                if (location == null) {
+                    saveHelper.saveLocation(name, currentLocation);
+                }
+            });
+        }
 
         gameHelper.resetCollision(player);
         gameHelper.resetWeather(player);

@@ -46,6 +46,10 @@ public class OnPlayerJoinEvent implements Listener {
         String playerName = player.getName();
         Location joinLocation = player.getLocation();
 
+        if (!saveHelper.usePersistence(player)) {
+            return;
+        }
+
         saveHelper.getLocation(playerName).thenAccept(location ->
                 plugin.getFoliaLib().getScheduler().runAtEntity(player, unused ->
                         applyPendingLocation(player, playerName, joinLocation, location)));

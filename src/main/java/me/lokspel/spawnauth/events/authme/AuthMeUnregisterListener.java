@@ -25,7 +25,7 @@ public class AuthMeUnregisterListener implements Listener {
     @EventHandler
     private void onPlayerUnregisterByAdmin(UnregisterByAdminEvent event) {
         Player player = event.getPlayer();
-        if (player != null && player.isOnline() && saveHelper.persistenceEnabled(player)) {
+        if (player != null && player.isOnline() && saveHelper.usePersistence(player)) {
             saveHelper.saveLocation(player.getName(), player.getLocation());
         }
     }

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+
 public class OnPlayerJoinEvent implements Listener {
     private final SpawnAuth plugin;
     private final GameHelper gameHelper;
@@ -55,6 +56,9 @@ public class OnPlayerJoinEvent implements Listener {
                         applyPendingLocation(player, playerName, joinLocation, location)));
 
         if (!gameHelper.isAuthenticated(player)) {
+            if (gameHelper.isInAuthWorld(player.getLocation())) {
+                return;
+            }
             Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
             if (authSpawn != null) {
                 gameHelper.teleport(player, authSpawn);

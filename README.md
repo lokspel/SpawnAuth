@@ -4,9 +4,11 @@ Authentication limbo and location restoration plugin for AuthMe, nLogin, OpeNLog
 
 ## » About
 
-SpawnAuth keeps unauthenticated players away from the main world until they successfully log in or register. It saves their original location before moving them to a configured waiting spot and restores that location after authentication.
+Keeps unauthenticated players away from the main world until they log in or register. Their original location is saved before they are moved to a waiting spot and restored after successful authentication.
 
-SpawnAuth is designed to replace the built-in spawn/limbo handling of authentication plugins, avoiding issues such as players getting stuck at spawn, spawning in the wrong location after death, or other authentication-related edge cases. Disable the corresponding spawn/limbo features in your authentication plugin when using SpawnAuth.
+Designed to replace the built-in spawn/limbo handling of authentication plugins, preventing issues such as players getting stuck at spawn, spawning in the wrong location after death, or other authentication-related edge cases.
+
+It is recommended to disable the corresponding spawn/limbo features in your authentication plugin when using this plugin.
 
 ## » Dependencies
 

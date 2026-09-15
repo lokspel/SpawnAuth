@@ -44,7 +44,24 @@ public class OnPlayerJoinEvent implements Listener {
         }
 
         String playerName = player.getName();
-        var pendingLocation = saveHelper.getLocation(playerName);
+        Location joinLocation = player.getLocation();
+
+        saveHelper.getLocation(playerName).thenAccept(location ->
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, unused ->
+                        applyPendingLocation(player, playerName, joinLocation, location)));
+
+        if (!gameHelper.isAuthenticated(player)) {
+            Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
+            if (authSpawn != null) {
+                gameHelper.teleport(player, authSpawn);
+            }
+        }
+    }
+
+    private void applyPendingLocation(Player player, String playerName, Location joinLocation, Location pendingLocation) {
+        if (!player.isOnline()) {
+            return;
+        }
 
         if (gameHelper.isAuthenticated(player)) {
             if (pendingLocation != null) {
@@ -58,20 +75,8 @@ public class OnPlayerJoinEvent implements Listener {
             return;
         }
 
-        if (pendingLocation != null) {
-            Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
-            if (authSpawn != null) {
-                gameHelper.teleport(player, authSpawn);
-            }
-            gameHelper.updateLimboCollision(player);
-            gameHelper.updateLimboWeather(player);
-            return;
-        }
-
-        saveHelper.saveLocation(player.getName(), player.getLocation());
-        Location authSpawn = gameHelper.getAuthSpawnLocation(modeFor(player));
-        if (authSpawn != null) {
-            gameHelper.teleport(player, authSpawn);
+        if (pendingLocation == null) {
+            saveHelper.saveLocation(playerName, joinLocation);
         }
         gameHelper.updateLimboCollision(player);
         gameHelper.updateLimboWeather(player);

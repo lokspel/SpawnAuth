@@ -11,6 +11,8 @@ import org.bukkit.entity.Player;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 public class SaveHelper {
 
@@ -62,39 +64,53 @@ public class SaveHelper {
         }
     }
 
-    public Location getLocation(String name) {
+    public CompletableFuture<Location> getLocation(String name) {
         SavedLocation saved = cache != null ? cache.get(name) : null;
-        if (saved == null && repository != null) {
-            saved = repository.get(name);
-            if (saved != null && cache != null) {
-                cache.put(saved);
-            }
-        }
-
-        return toLocation(saved);
-    }
-
-    public Location takeLocation(String name) {
-        SavedLocation saved = null;
-        if (cache != null) {
-            saved = cache.remove(name);
+        if (saved != null) {
+            return CompletableFuture.completedFuture(toLocation(saved));
         }
 
         if (repository != null) {
-            if (saved != null) {
-                repository.delete(name);
-            } else {
-                saved = repository.take(name);
+            return repository.get(name).thenApply(dbSaved -> {
+                if (dbSaved != null && cache != null) {
+                    cache.put(dbSaved);
+                }
+                return toLocation(dbSaved);
+            });
+        }
+
+        return CompletableFuture.completedFuture(null);
+    }
+
+    public CompletableFuture<Location> takeLocation(String name) {
+        if (cache != null) {
+            SavedLocation cached = cache.remove(name);
+            if (cached != null) {
+                if (repository != null) {
+                    repository.delete(name);
+                }
+                return CompletableFuture.completedFuture(toLocation(cached));
             }
         }
 
-        return toLocation(saved);
+        if (repository != null) {
+            return repository.take(name).thenApply(this::toLocation);
+        }
+
+        return CompletableFuture.completedFuture(null);
     }
 
     public void handleDisable(GameHelper gameHelper) {
-        Collection<SavedLocation> savedLocations = repository != null
-                ? repository.getAll()
-                : (cache != null ? cache.values() : List.of());
+        Collection<SavedLocation> savedLocations;
+        try {
+            savedLocations = repository != null
+                    ? repository.getAll().join()
+                    : (cache != null ? cache.values() : List.of());
+        } catch (CompletionException exception) {
+            LogHelper.LOGGER.warning(() ->
+                    "Failed to load saved locations during disable: " + exception.getCause());
+            savedLocations = List.of();
+        }
 
         for (SavedLocation saved : savedLocations) {
             try {

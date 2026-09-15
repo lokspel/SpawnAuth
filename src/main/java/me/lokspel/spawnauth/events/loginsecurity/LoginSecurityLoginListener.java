@@ -5,7 +5,6 @@ import com.lenis0012.bukkit.loginsecurity.session.AuthActionType;
 import me.lokspel.spawnauth.SpawnAuth;
 import me.lokspel.spawnauth.helpers.GameHelper;
 import me.lokspel.spawnauth.helpers.SaveHelper;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -64,13 +63,15 @@ public class LoginSecurityLoginListener implements Listener {
                 return;
             }
 
-            Location fallbackLocation = saveHelper.takeLocation(name);
-            if (fallbackLocation != null) {
-                gameHelper.teleport(player, fallbackLocation);
-            }
+            saveHelper.takeLocation(name).thenAccept(location ->
+                    plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> {
+                        if (location != null) {
+                            gameHelper.teleport(player, location);
+                        }
 
-            gameHelper.updateLimboCollision(player);
-            gameHelper.updateLimboWeather(player);
+                        gameHelper.updateLimboCollision(player);
+                        gameHelper.updateLimboWeather(player);
+                    }));
         });
     }
 }

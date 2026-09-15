@@ -96,10 +96,11 @@ public class GameHelper {
         }
 
         String name = player.getName();
-        Location location = saveHelper.takeLocation(name);
-        if (location != null) {
-            teleport(player, location);
-        }
+        saveHelper.takeLocation(name).thenAccept(location -> {
+            if (location != null) {
+                plugin.getFoliaLib().getScheduler().runAtEntity(player, unused -> teleport(player, location));
+            }
+        });
     }
 
     public void updateLimboCollision(Player player) {

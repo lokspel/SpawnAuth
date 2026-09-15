@@ -51,7 +51,8 @@ public class GameHelper {
 
     public boolean isInAuthWorld(Location location) {
         if (location == null || location.getWorld() == null) return false;
-        return location.getWorld().getName().equals(config.getOverworldName());
+        return location.getWorld().getName().equals(config.getOverworldName())
+                || location.getWorld().getName().equals(config.getGenerationWorldName());
     }
 
     public boolean isNotAtAuthSpawn(Location location, String mode) {
